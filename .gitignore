@@ -8,3 +8,4 @@ graphify-out/.graphify_labels.json.sig
 .idea/
 graphify-out/20*/
 graphify-out/.graphify_analysis.json
+data/

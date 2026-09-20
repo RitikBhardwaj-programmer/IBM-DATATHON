@@ -15,3 +15,5 @@ After changing code run `graphify update .`; after changing docs/notes run `/gra
 
 ## Teaching preference
 Teach like a mentor: intuition -> simple example -> technical detail -> quiz -> implementation. Explain code in small pieces; don't dump big codebases. Don't re-teach completed theory (FedAvg, non-IID, FedProx, DP, SecAgg).
+- `step2_heart_fedavg_fedprox.py` — Step 2: FedAvg vs FedProx on UCI Heart Disease with its 4 real hospitals. Sweep: `run_step2_sweep.sh` -> `results/step2_runs.jsonl`. Finding: FedProx ~ FedAvg; FedAvg ~ centralized.
+- `data/heart_disease/` — NOT in git. Download the 4 files `processed.{cleveland,hungarian,switzerland,va}.data` from https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/
