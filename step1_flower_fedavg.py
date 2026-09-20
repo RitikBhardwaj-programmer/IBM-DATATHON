@@ -5,6 +5,8 @@ Raw rows never leave a client; only model parameters travel to the server.
 
 Run:  .venv\\Scripts\\python.exe step1_flower_fedavg.py
 """
+import os
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,9 +24,9 @@ from flwr.simulation import run_simulation
 
 SEED = 0
 NUM_CLIENTS = 3
-NUM_ROUNDS = 10
-LOCAL_EPOCHS = 1
-DIRICHLET_ALPHA = 0.5  # smaller -> more non-IID (hospitals see very different label mixes)
+NUM_ROUNDS = int(os.environ.get("NUM_ROUNDS", 10))
+LOCAL_EPOCHS = int(os.environ.get("LOCAL_EPOCHS", 1))
+DIRICHLET_ALPHA = float(os.environ.get("ALPHA", 0.5))  # smaller -> more non-IID (hospitals see very different label mixes)
 
 torch.manual_seed(SEED)
 rng = np.random.default_rng(SEED)
