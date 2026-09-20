@@ -1,0 +1,667 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Z Datathon Playbook</title>
+<style>
+  :root{
+    --bg:#eef0ea;
+    --surface:#ffffff;
+    --surface-soft:#e4e7de;
+    --ink:#1b2420;
+    --ink-soft:#4b5650;
+    --ink-faint:#7a847d;
+    --accent:#a94e1c;
+    --accent-ink:#ffffff;
+    --teal:#1f6b63;
+    --line:rgba(27,36,32,0.14);
+    --line-strong:rgba(27,36,32,0.28);
+    --tag-warn-bg:#f6e6da;
+    --tag-warn-ink:#8a3d13;
+    --tag-good-bg:#dfeee9;
+    --tag-good-ink:#1a5a52;
+    --code-bg:#e6e9e0;
+    --shadow: 0 1px 2px rgba(20,26,20,0.06), 0 8px 24px -12px rgba(20,26,20,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12160f;
+      --surface:#191f17;
+      --surface-soft:#212820;
+      --ink:#eaeee4;
+      --ink-soft:#b7c0b3;
+      --ink-faint:#828d80;
+      --accent:#e2874b;
+      --accent-ink:#12160f;
+      --teal:#5fb7a8;
+      --line:rgba(234,238,228,0.14);
+      --line-strong:rgba(234,238,228,0.26);
+      --tag-warn-bg:#3a2415;
+      --tag-warn-ink:#f0b587;
+      --tag-good-bg:#183330;
+      --tag-good-ink:#8fd9c8;
+      --code-bg:#20261d;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12160f;
+    --surface:#191f17;
+    --surface-soft:#212820;
+    --ink:#eaeee4;
+    --ink-soft:#b7c0b3;
+    --ink-faint:#828d80;
+    --accent:#e2874b;
+    --accent-ink:#12160f;
+    --teal:#5fb7a8;
+    --line:rgba(234,238,228,0.14);
+    --line-strong:rgba(234,238,228,0.26);
+    --tag-warn-bg:#3a2415;
+    --tag-warn-ink:#f0b587;
+    --tag-good-bg:#183330;
+    --tag-good-ink:#8fd9c8;
+    --code-bg:#20261d;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    padding-inline:20px;
+    line-height:1.55;
+  }
+  .wrap{max-width:840px; margin:0 auto;}
+
+  h1,h2,h3{
+    font-family:'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    text-wrap:balance;
+    line-height:1.15;
+    color:var(--ink);
+  }
+  .mono, .stat, .tag, nav.toc a, .kicker, .datebar, table{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  a{color:var(--accent);}
+  p{max-width:65ch;}
+  .wide p{max-width:none;}
+
+  /* ---- Header ---- */
+  header.hero{
+    padding-block:36px 24px;
+    border-bottom:1px solid var(--line-strong);
+  }
+  .kicker{
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    display:block;
+    margin-bottom:10px;
+  }
+  header.hero h1{
+    font-size:clamp(28px,6vw,42px);
+    margin:0 0 10px;
+  }
+  header.hero .sub{
+    color:var(--ink-soft);
+    font-size:16px;
+    max-width:60ch;
+    margin:0 0 20px;
+  }
+  .datebar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:12.5px;
+  }
+  .datebar span{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:5px 10px;
+    color:var(--ink-soft);
+  }
+  .datebar span b{color:var(--ink); font-weight:600;}
+
+  /* ---- Nav ---- */
+  nav.toc{
+    position:sticky;
+    top:env(safe-area-inset-top,0px);
+    background:var(--bg);
+    z-index:5;
+    padding-block:10px;
+    margin-inline:-20px;
+    padding-inline:20px;
+    border-bottom:1px solid var(--line);
+    overflow-x:auto;
+    white-space:nowrap;
+    -webkit-overflow-scrolling:touch;
+  }
+  nav.toc::-webkit-scrollbar{display:none;}
+  nav.toc a{
+    display:inline-block;
+    font-size:11.5px;
+    letter-spacing:0.03em;
+    color:var(--ink-soft);
+    text-decoration:none;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    margin-right:6px;
+  }
+  nav.toc a:hover{color:var(--accent); border-color:var(--accent);}
+
+  section{
+    padding-block:38px;
+    border-bottom:1px solid var(--line);
+    scroll-margin-top:52px;
+  }
+  section:last-of-type{border-bottom:none;}
+
+  .num{
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--accent);
+    font-size:13px;
+    font-weight:600;
+    display:block;
+    margin-bottom:6px;
+  }
+  section > h2{
+    font-size:clamp(21px,4vw,27px);
+    margin:0 0 6px;
+  }
+  .lede{
+    color:var(--ink-soft);
+    margin:0 0 22px;
+    max-width:62ch;
+  }
+
+  /* ---- Callout / disclaimer ---- */
+  .callout{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    border-radius:6px;
+    padding:14px 16px;
+    font-size:14px;
+    color:var(--ink-soft);
+    margin-block:18px;
+  }
+  .callout b{color:var(--ink);}
+
+  /* ---- Winner cards ---- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:14px;
+    margin-block:18px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .card h4{margin:0; font-size:15.5px; line-height:1.3;}
+  .card p{margin:0; font-size:13.5px; color:var(--ink-soft); max-width:none;}
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:4px;
+    width:fit-content;
+    font-weight:600;
+  }
+  .tag.win{background:var(--tag-good-bg); color:var(--tag-good-ink);}
+  .tag.watch{background:var(--tag-warn-bg); color:var(--tag-warn-ink);}
+  .card .src{font-size:11px; color:var(--ink-faint); margin-top:auto;}
+  .card .src a{color:var(--ink-faint);}
+  .card .stat{font-size:20px; font-weight:600; color:var(--accent);}
+
+  /* ---- Compare ---- */
+  .compare{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-block:18px;
+  }
+  @media (max-width:520px){ .compare{grid-template-columns:1fr;} }
+  .compare .col{
+    border-radius:8px;
+    padding:16px;
+    border:1px solid var(--line);
+  }
+  .compare .col.bad{background:var(--tag-warn-bg);}
+  .compare .col.good{background:var(--tag-good-bg);}
+  .compare h4{
+    margin:0 0 10px;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .compare .col.bad h4{color:var(--tag-warn-ink);}
+  .compare .col.good h4{color:var(--tag-good-ink);}
+  .compare ul{margin:0; padding-left:18px; font-size:13.5px;}
+  .compare .col.bad li{color:var(--tag-warn-ink);}
+  .compare .col.good li{color:var(--tag-good-ink);}
+  .compare li{margin-bottom:8px;}
+
+  /* ---- Theme blocks ---- */
+  .theme{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px;
+    margin-block:16px;
+    background:var(--surface);
+  }
+  .theme .theme-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .theme h3{font-size:18px; margin:0;}
+  .theme .why{
+    font-size:13.5px;
+    color:var(--teal);
+    margin:0 0 14px;
+    border-left:2px solid var(--teal);
+    padding-left:10px;
+  }
+  .idea-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .idea-list li{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:14px;
+    padding:10px 12px;
+    border-radius:6px;
+    background:var(--surface-soft);
+  }
+  .idea-list li.pick{background:var(--tag-good-bg); border:1px solid var(--teal);}
+  .idea-list .letter{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    color:var(--accent);
+    flex-shrink:0;
+  }
+  .idea-list li.pick .letter{color:var(--tag-good-ink);}
+  .pickbadge{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    background:var(--teal);
+    color:var(--accent-ink);
+    padding:2px 6px;
+    border-radius:4px;
+    margin-left:6px;
+    font-weight:600;
+    vertical-align:middle;
+  }
+
+  .recommend{
+    border-radius:10px;
+    padding:22px;
+    background:var(--surface);
+    border:1px solid var(--line-strong);
+    position:relative;
+    overflow:hidden;
+  }
+  .recommend::before{
+    content:"";
+    position:absolute; inset:0 0 0 0;
+    width:4px;
+    background:var(--accent);
+  }
+  .recommend h3{margin:0 0 8px; font-size:19px;}
+
+  /* ---- Checklist ---- */
+  .checklist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0;}
+  .checklist li{
+    display:flex;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+    font-size:14.5px;
+  }
+  .checklist li:last-child{border-bottom:none;}
+  .checklist .box{
+    flex-shrink:0;
+    width:16px; height:16px;
+    border:1.5px solid var(--ink-faint);
+    border-radius:4px;
+    margin-top:2px;
+  }
+  .checklist b{color:var(--ink);}
+  .checklist span{color:var(--ink-soft);}
+
+  /* ---- Timeline ---- */
+  .timeline{
+    display:flex;
+    flex-direction:column;
+    border-left:2px solid var(--line-strong);
+    margin-left:6px;
+    padding-left:0;
+  }
+  .tl-item{
+    position:relative;
+    padding:0 0 26px 22px;
+  }
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{
+    content:"";
+    position:absolute;
+    left:-7px; top:2px;
+    width:12px; height:12px;
+    border-radius:50%;
+    background:var(--bg);
+    border:2px solid var(--accent);
+  }
+  .tl-item .when{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--accent);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    display:block;
+    margin-bottom:4px;
+  }
+  .tl-item h4{margin:0 0 6px; font-size:15.5px;}
+  .tl-item p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+  .tl-item.deadline .when{color:var(--tag-warn-ink);}
+  .tl-item.deadline::before{border-color:#b23b1f;}
+
+  /* ---- table for stack ---- */
+  .tablewrap{overflow-x:auto; margin-block:16px;}
+  table{border-collapse:collapse; width:100%; font-size:13px;}
+  th,td{
+    text-align:left;
+    padding:9px 12px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  th{color:var(--ink-faint); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.04em;}
+
+  footer{
+    padding-block:30px 50px;
+    font-size:12.5px;
+    color:var(--ink-faint);
+  }
+  footer .srcs{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+  footer a{color:var(--ink-faint);}
+
+  code{
+    background:var(--code-bg);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:0.9em;
+    font-family:'IBM Plex Mono',monospace;
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="kicker">Prep guide · IBM Z Datathon 2026</span>
+  <h1>What to build, and how to get there</h1>
+  <p class="sub">A working plan built from how the last four editions of this datathon actually played out — who won, what they built, where teams wasted their 24 hours, and what to do differently for October's "Real-Time AI," "AI Secured," and "Wildcard" tracks.</p>
+  <div class="datebar">
+    <span>Today · <b>Sep 16</b></span>
+    <span>Registration closes · <b>Oct 1</b></span>
+    <span>Datathon · <b>Oct 17–18</b></span>
+    <span>Winners · <b>Oct 28</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#evidence">Past editions</a>
+  <a href="#patterns">What wins</a>
+  <a href="#themes">2026 themes</a>
+  <a href="#recommendation">My pick</a>
+  <a href="#prereqs">Prerequisites</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#pitch">Pitch day</a>
+</nav>
+
+<section id="evidence">
+  <span class="num">01</span>
+  <h2>What actually happened in past editions</h2>
+  <p class="lede">This datathon has run since 2022 under IBM and the Shooting Stars Foundation, mostly on Devpost until this year's move to Hack2Skill. Public submission galleries and IBM's own case studies give a real, if partial, record of what got built and what got singled out.</p>
+
+  <div class="callout">
+    <b>Read this before you rely on any of it:</b> official 2026 rules for team size and the exact prize split aren't published yet. The rubric and prize structure below are from the most recently completed edition — confirm both once the Hack2Skill registration page opens.
+  </div>
+
+  <h3 style="font-size:15px; margin-top:26px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em;">Judging rubric (2025 edition)</h3>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Criterion</th><th>What it rewards</th></tr>
+      <tr><td>Value to community</td><td>A named beneficiary and a measurable benefit — not "helps people"</td></tr>
+      <tr><td>Creativity / novelty</td><td>An idea that isn't the third breast-cancer classifier judges saw that day</td></tr>
+      <tr><td>Technical design</td><td>Actual use of ML <i>on</i> Z / LinuxONE — not just Python hosted somewhere</td></tr>
+    </table>
+  </div>
+  <p style="font-size:13px; color:var(--ink-faint); margin-top:-6px;">Prize structure that year: 1st $1,000 + 3-month IBM mentorship + $10K+ Z credits · 2nd $500 + same · 3rd $250 + same. Your invite's $1,000/$750/$500 is almost certainly this year's version of the same tier, likely for a specific region or hub.</p>
+
+  <h3 style="font-size:15px; margin-top:30px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em;">Confirmed winners</h3>
+  <div class="grid">
+    <div class="card">
+      <span class="tag win">Winner</span>
+      <h4>Get Home Safe</h4>
+      <p>Fused Berkeley's historical crime data with street-light location data into a "safest route home" tool — a two-person team, one narrow and concrete deliverable.</p>
+      <span class="src">IBM zDatathon for Social Good · <a href="https://devpost.com/software/get-home-safe" target="_blank">Devpost</a></span>
+    </div>
+    <div class="card">
+      <span class="tag win">Winner</span>
+      <h4>Autism Screening (ML)</h4>
+      <p>Solo entry. A screening model on behavioral-trait answers, positioned explicitly as a cheap pre-filter before expensive clinical diagnosis.</p>
+      <div class="stat">97.4%</div>
+      <span class="src">reported accuracy · <a href="https://ibmz-cal.devpost.com/project-gallery" target="_blank">Devpost</a></span>
+    </div>
+    <div class="card">
+      <span class="tag win">Winner</span>
+      <h4>Breast Cancer Detection</h4>
+      <p>A four-person team combined classical ML and deep learning for detection — the most crowded category in the whole dataset, but this entry still placed.</p>
+      <span class="src"><a href="https://ibmz-cal.devpost.com/project-gallery" target="_blank">Devpost</a></span>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px; margin-top:30px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em;">The story IBM itself chose to spotlight</h3>
+  <div class="grid">
+    <div class="card">
+      <span class="tag good" style="background:var(--tag-good-bg); color:var(--tag-good-ink);">Featured by IBM</span>
+      <h4>Team Oasis — lake encroachment detector</h4>
+      <p>Trained a CNN on satellite/drone imagery to flag illegal lake-boundary encroachment around Bengaluru, then containerized it and deployed to IBM LinuxONE Community Cloud with Docker. Hit a real wall — PyTorch behaving oddly on the platform's architecture — traced it to a <b>big-endian compatibility issue</b>, and fixed it by switching to an architecture-appropriate PyTorch build.</p>
+      <span class="src">IBM Community blog, Apr 2025 · <a href="https://community.ibm.com/community/user/blogs/akshata-pandit/2025/04/24/our-experience-using-ibm-linuxone-from-datathon-pa" target="_blank">read it</a></span>
+    </div>
+    <div class="card">
+      <span class="tag watch">Cautionary</span>
+      <h4>Genetic Disorder Prediction</h4>
+      <p>Ran five different classifiers (Random Forest, MLP, Logistic Regression, two AdaBoost variants) on pediatric genetic-disorder data. Best result: 61% accuracy. Blocked by messy raw data, no GPU on the platform, and outdated library versions — never got past a bake-off of mediocre models.</p>
+      <span class="src"><a href="https://devpost.com/software/genetic-disorder-analysis-and-prediction" target="_blank">Devpost project page</a></span>
+    </div>
+  </div>
+</section>
+
+<section id="patterns">
+  <span class="num">02</span>
+  <h2>Reading between the winners</h2>
+  <p class="lede">Only a handful of projects are explicitly tagged as winners in the public record, so treat this as directional, not statistical. But a pattern holds up across every source I found.</p>
+
+  <div class="compare">
+    <div class="col bad">
+      <h4>What blends in</h4>
+      <ul>
+        <li>Another classifier on a public Kaggle dataset (breast cancer, diabetes, heart disease — judges see several of these every year)</li>
+        <li>A multi-model "bake-off" with no clear winner among the models and mediocre accuracy (50s–60s%)</li>
+        <li>IBM Z mentioned once in a slide, never touched in the actual build</li>
+        <li>A notebook with no working demo — just plots and a printed accuracy score</li>
+        <li>A vague beneficiary: "this helps people with X" with no number attached</li>
+      </ul>
+    </div>
+    <div class="col good">
+      <h4>What stood out</h4>
+      <ul>
+        <li>One narrow, named problem with a real local dataset (Berkeley crime + street lights, Bengaluru lake imagery)</li>
+        <li>A single strong result stated as a number (97.4% accuracy; a working navigation output)</li>
+        <li>Actually deployed <i>on</i> LinuxONE — containerized, running, screenshot-able</li>
+        <li>Hit a platform-specific snag and solved it (the big-endian PyTorch story) — proof of real engagement with Z, not just Python-in-the-cloud</li>
+        <li>Small, focused teams that shipped something complete over something ambitious but half-built</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>The healthcare-classifier space (cancer, autism, mental health, genetic disorders, medical transcripts) was by far the most repeated category across every gallery I could pull. It's not a bad domain — two of the three confirmed winners are in it — but you're competing against the largest cluster of similar entries there. Environment/civic entries (Get Home Safe, lake encroachment, EV range, clean-energy pricing) were rarer and, going by IBM's own case study, get more attention when they're well executed.</p>
+</section>
+
+<section id="themes">
+  <span class="num">03</span>
+  <h2>The three 2026 tracks, and where IBM Z actually helps</h2>
+  <p class="lede">The 2026 themes are a real shift from "run ML on Z" toward the platform's actual enterprise selling points: on-chip real-time inference, and hardware-level encryption. Building toward those specifically — even if you're simulating the hardware story rather than running on literal z16/z17 silicon — is the single biggest lever you have on the "use of IBM Z" score.</p>
+
+  <div class="theme">
+    <div class="theme-head"><h3>1 · Real-Time AI for Critical Decisions</h3></div>
+    <p class="why">IBM Z's actual headline AI story: the Telum on-chip accelerator does in-transaction fraud scoring at massive scale with near-zero added latency. This theme is IBM asking you to reenact that pitch in miniature.</p>
+    <ul class="idea-list">
+      <li><span class="letter">A</span><span>Point-of-transaction fraud/anomaly scoring on a simulated payment stream — closest literal match to Z's real flagship use case.</span></li>
+      <li><span class="letter">B</span><span>ICU vitals early-warning: streaming heart-rate/SpO2/BP data flags deterioration risk before a clinical event.</span></li>
+      <li class="pick"><span class="letter">C</span><span><b>Flood / disaster early-warning from streaming sensor + weather data</b><span class="pickbadge">Strongest fit</span> — river-gauge and rainfall telemetry scored in real time to trigger evacuation alerts before flooding hits. Chennai's monsoon flooding is a well-documented, recurring local crisis — this lands the "value to community" criterion hard for a judging panel with a Chennai hub, and the real-time/low-latency framing is a clean match for the theme.</span></li>
+    </ul>
+  </div>
+
+  <div class="theme">
+    <div class="theme-head"><h3>2 · AI Secured: Innovation Without Exposure</h3></div>
+    <p class="why">Z's other real differentiator: pervasive encryption and IBM Secure Execution let you compute on sensitive data without ever exposing it in the clear — even to the infrastructure operator. This theme is that pitch, restated as a hackathon prompt.</p>
+    <ul class="idea-list">
+      <li class="pick"><span class="letter">A</span><span><b>Federated learning across simulated hospitals or banks</b><span class="pickbadge">Strongest fit</span> — train one shared disease-risk or credit-risk model without any institution's raw records leaving its own server. Mature open-source tooling (Flower) makes this genuinely buildable in 24 hours, and the theme's own name — "innovation without exposure" — is almost a literal description of what federated learning does.</span></li>
+      <li><span class="letter">B</span><span>Homomorphic-encryption diagnosis: run inference directly on encrypted patient data (e.g. with TenSEAL). Technically flashier, but real homomorphic encryption is slow and fragile to demo live in 24 hours — treat as a stretch goal, not the core deliverable.</span></li>
+      <li><span class="letter">C</span><span>Differential-privacy loan-risk scoring across simulated banks (e.g. with Opacus) — same spirit as A, financial-services framing instead of health.</span></li>
+    </ul>
+  </div>
+
+  <div class="theme">
+    <div class="theme-head"><h3>3 · Wildcard: Beyond the Obvious</h3></div>
+    <p class="why">Organizers are explicitly asking for something the judges haven't already seen three times that day. Given how crowded the healthcare-classifier space already is, "beyond the obvious" for this event specifically means: not another diagnosis model.</p>
+    <ul class="idea-list">
+      <li class="pick"><span class="letter">A</span><span><b>An AI copilot for legacy COBOL / mainframe modernization</b><span class="pickbadge">Highest novelty</span> — an agent that reads legacy COBOL, explains what it does in plain English, and flags migration risk. Nothing in four years of public submissions attempted this, and it's a real pain point IBM sells an actual commercial product against (watsonx Code Assistant for Z) — which means an IBM judging panel will recognize it instantly as relevant rather than generic.</span></li>
+      <li><span class="letter">B</span><span>Explainable misinformation/deepfake detector — extends the "fake news detector" pattern seen before by adding a citizen-facing "why was this flagged" explanation layer, which past entries in this space didn't have.</span></li>
+      <li><span class="letter">C</span><span>An accessibility copilot for one specific underserved group (e.g. sign-language-to-text triage assistant) — high value-to-community if scoped narrowly to one real user group rather than "accessibility" in the abstract.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="recommendation">
+  <span class="num">04</span>
+  <h2>If you want one answer</h2>
+  <div class="recommend">
+    <h3>Build the federated-learning privacy demo (Theme 2, option A)</h3>
+    <p>Across novelty, feasibility in 24 hours, and fit to what IBM Z is actually known for, this is the strongest single bet. The tooling (Flower, plus scikit-learn or a small PyTorch model) is mature enough that a team without deep ML experience can get a working three-node federated demo running well within a day. It's not the most crowded category — unlike a standalone health classifier — and its name is almost literally the theme's name, so you never have to work hard to justify the fit in your pitch. Layer in a one-slide explanation of how IBM Secure Execution/pervasive encryption would harden it further in production, even if you don't implement that part, and you've directly answered all three judging criteria: a named beneficiary (institutions that can't legally share raw data), real novelty relative to the submission pool, and an explicit tie to Z's actual security architecture.</p>
+    <p style="margin-top:12px; color:var(--ink-soft); font-size:13.5px;">If your team is stronger on data engineering than ML, the flood early-warning idea (Theme 1, option C) is the next-best pick — same logic, different theme, and it carries a sharper "value to community" story if any judges are local to Chennai.</p>
+  </div>
+</section>
+
+<section id="prereqs">
+  <span class="num">05</span>
+  <h2>Prerequisites</h2>
+  <p class="lede">Set these up before the 24 hours start — every hour lost to account provisioning or environment setup during the datathon is an hour not spent building.</p>
+
+  <ul class="checklist">
+    <li><span class="box"></span><span><b>Team.</b> Past editions ran solo through 6-person teams — 2026's exact cap isn't published yet, but 3–4 people covering ML, backend/deployment, and a presenter is a good default.</span></li>
+    <li><span class="box"></span><span><b>Hack2Skill / StarHacks registration</b>, completed before Oct 1.</span></li>
+    <li><span class="box"></span><span><b>IBMid account</b> — needed for IBM Z Xplore badges and LinuxONE Community Cloud access. Provisioning a free L1CC virtual server can take a few days; request it early, not on event day.</span></li>
+    <li><span class="box"></span><span><b>GitHub account</b>, with Git basics (clone, commit, push, branches) comfortable for every team member.</span></li>
+    <li><span class="box"></span><span><b>Docker</b> installed and understood at a basic level — most credible past submissions containerized their model before deploying to LinuxONE.</span></li>
+    <li><span class="box"></span><span><b>Python fundamentals</b> — pandas for data handling, scikit-learn for classical ML, and at least one of TensorFlow/PyTorch/Keras.</span></li>
+    <li><span class="box"></span><span>A demo framework — <b>Flask</b> or <b>Streamlit</b> — so you finish with something a judge can click through, not just a notebook.</span></li>
+  </ul>
+</section>
+
+<section id="roadmap">
+  <span class="num">06</span>
+  <h2>Four-week roadmap</h2>
+  <p class="lede">Mapped to today's date. The single most common failure mode in the record above was discovering a platform compatibility problem (the big-endian PyTorch issue) far too late — this plan front-loads exactly that risk.</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <span class="when">Week 1 · Sep 16–22</span>
+      <h4>Register, provision, pick a theme</h4>
+      <p>Register the team on Hack2Skill. Create an IBMid and request LinuxONE Community Cloud access immediately — provisioning lag is your biggest schedule risk. Work through the free IBM Z Xplore starter badges. Agree as a team on one theme and one idea from the list above.</p>
+    </div>
+    <div class="tl-item">
+      <span class="when">Week 2 · Sep 23–29</span>
+      <h4>De-risk the platform, not the model</h4>
+      <p>The moment your L1CC instance is live, deploy a trivial "hello world" model to it in Docker — this is where you find architecture-compatibility issues (like the s390x/big-endian PyTorch problem Team Oasis hit) while you still have time to fix them. In parallel, learn the core tool for your theme: Flower for federated learning, or a simple simulated data-stream producer for real-time scoring. Source or simulate your dataset.</p>
+    </div>
+    <div class="tl-item deadline">
+      <span class="when">Oct 1 — Deadline</span>
+      <h4>Registration closes</h4>
+      <p>Confirm your team is fully registered before this date.</p>
+    </div>
+    <div class="tl-item">
+      <span class="when">Week 3 · Sep 30–Oct 6</span>
+      <h4>Build the MVP</h4>
+      <p>Working model plus a bare-bones Flask/Streamlit front end, end to end, even if ugly. Attend any IBM orientation or SME sessions — they're also where you pick up hints about what the 2026 judges are specifically looking for. Write your "value to community" framing in one sentence and pressure-test it on someone outside the team.</p>
+    </div>
+    <div class="tl-item">
+      <span class="when">Week 4 · Oct 7–13</span>
+      <h4>Integrate and rehearse</h4>
+      <p>Full end-to-end build on LinuxONE Community Cloud. Start drafting your submission write-up and a 2–3 minute pitch script. Do one full dry-run demo with someone who hasn't seen the project before.</p>
+    </div>
+    <div class="tl-item">
+      <span class="when">Oct 14–16</span>
+      <h4>Freeze scope</h4>
+      <p>Stop adding features. Polish the demo path, prepare for the failure cases you'll hit live, and plan sleep/shift schedules for the 24-hour window.</p>
+    </div>
+    <div class="tl-item">
+      <span class="when">Oct 17–18</span>
+      <h4>Datathon</h4>
+      <p>Protect a complete, working demo over an ambitious but unfinished one — every winning project in the record above was fully working, none were the most technically ambitious idea in their gallery.</p>
+    </div>
+    <div class="tl-item">
+      <span class="when">Oct 28</span>
+      <h4>Winners announced</h4>
+      <p>—</p>
+    </div>
+  </div>
+</section>
+
+<section id="pitch">
+  <span class="num">07</span>
+  <h2>Pitching against the actual rubric</h2>
+  <p class="lede">Structure your submission and demo to answer each judging criterion explicitly and in this order — don't make the panel infer it.</p>
+  <ul class="checklist">
+    <li><span class="box"></span><span><b>Value to community —</b> <span>open with the named beneficiary and a number: how many people, what specific harm reduced or time saved. Not "this helps people."</span></span></li>
+    <li><span class="box"></span><span><b>Creativity / novelty —</b> <span>say out loud what makes this different from the obvious version of the idea — this is your chance to pre-empt the "another classifier" reaction.</span></span></li>
+    <li><span class="box"></span><span><b>Technical design / use of IBM Z —</b> <span>show it running on LinuxONE Community Cloud on screen. Name the specific Z capability your idea maps to (real-time inference at the transaction layer, pervasive encryption, Secure Execution) even where you've only simulated it.</span></span></li>
+    <li><span class="box"></span><span><b>Live demo over slides —</b> <span>every standout project in the record above had something a judge could actually click through.</span></span></li>
+  </ul>
+</section>
+
+<footer>
+  <p>Built from public submission galleries, IBM's own case studies, and the most recently completed edition's rules — cross-check team size and prize breakdown against the official 2026 registration page once it's fully live.</p>
+  <div class="srcs">
+    <a href="https://ibmz-cal.devpost.com/project-gallery" target="_blank">IBM zDatathon for Social Good — project gallery (Devpost)</a>
+    <a href="https://starhacks-datathon.devpost.com/project-gallery" target="_blank">StarHacks Datathon — project gallery (Devpost)</a>
+    <a href="https://starhacks-datathon.devpost.com/" target="_blank">StarHacks Datathon — rules & judging criteria (Devpost)</a>
+    <a href="https://devpost.com/software/genetic-disorder-analysis-and-prediction" target="_blank">Genetic Disorder Analysis and Prediction — project writeup</a>
+    <a href="https://community.ibm.com/community/user/blogs/akshata-pandit/2025/04/24/our-experience-using-ibm-linuxone-from-datathon-pa" target="_blank">Team Oasis — IBM Community blog</a>
+    <a href="https://community.ibm.com/community/user/blogs/mingmay-pang2/2024/02/05/ibm-z-datathon-my-journey-with-linuxone" target="_blank">"My journey with LinuxONE" — IBM Community blog</a>
+    <a href="https://community.ibm.com/zsystems/l1cc/" target="_blank">IBM LinuxONE Community Cloud — getting started</a>
+    <a href="https://hack2skill.com/event/datathon-2026" target="_blank">IBM Z Datathon 2026 — official registration (Hack2Skill)</a>
+  </div>
+</footer>
+
+</div>
+
+</body></html>

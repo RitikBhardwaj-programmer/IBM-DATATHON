@@ -1,0 +1,253 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Corporate AI Circuit</title>
+<style>
+  :root{
+    --bg:#eef0ea;
+    --surface:#ffffff;
+    --surface-soft:#e4e7de;
+    --ink:#1b2420;
+    --ink-soft:#4b5650;
+    --ink-faint:#7a847d;
+    --accent:#a94e1c;
+    --accent-ink:#ffffff;
+    --teal:#1f6b63;
+    --line:rgba(27,36,32,0.14);
+    --line-strong:rgba(27,36,32,0.28);
+    --tag-warn-bg:#f6e6da;
+    --tag-warn-ink:#8a3d13;
+    --tag-good-bg:#dfeee9;
+    --tag-good-ink:#1a5a52;
+    --code-bg:#e6e9e0;
+    --shadow: 0 1px 2px rgba(20,26,20,0.06), 0 8px 24px -12px rgba(20,26,20,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12160f; --surface:#191f17; --surface-soft:#212820;
+      --ink:#eaeee4; --ink-soft:#b7c0b3; --ink-faint:#828d80;
+      --accent:#e2874b; --accent-ink:#12160f; --teal:#5fb7a8;
+      --line:rgba(234,238,228,0.14); --line-strong:rgba(234,238,228,0.26);
+      --tag-warn-bg:#3a2415; --tag-warn-ink:#f0b587;
+      --tag-good-bg:#183330; --tag-good-ink:#8fd9c8;
+      --code-bg:#20261d; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12160f; --surface:#191f17; --surface-soft:#212820;
+    --ink:#eaeee4; --ink-soft:#b7c0b3; --ink-faint:#828d80;
+    --accent:#e2874b; --accent-ink:#12160f; --teal:#5fb7a8;
+    --line:rgba(234,238,228,0.14); --line-strong:rgba(234,238,228,0.26);
+    --tag-warn-bg:#3a2415; --tag-warn-ink:#f0b587;
+    --tag-good-bg:#183330; --tag-good-ink:#8fd9c8;
+    --code-bg:#20261d; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; padding-inline:20px; line-height:1.55;}
+  .wrap{max-width:860px; margin:0 auto;}
+  h1,h2,h3{font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif; font-weight:600; text-wrap:balance; line-height:1.15; color:var(--ink);}
+  .mono,.stat,.tag,nav.toc a,.kicker,table{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+  a{color:var(--accent);}
+  p{max-width:65ch;}
+
+  header.hero{padding-block:36px 24px; border-bottom:1px solid var(--line-strong);}
+  .kicker{font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:10px;}
+  header.hero h1{font-size:clamp(26px,6vw,40px); margin:0 0 10px;}
+  header.hero .sub{color:var(--ink-soft); font-size:16px; max-width:64ch; margin:0;}
+
+  nav.toc{position:sticky; top:env(safe-area-inset-top,0px); background:var(--bg); z-index:5; padding-block:10px; margin-inline:-20px; padding-inline:20px; border-bottom:1px solid var(--line); overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;}
+  nav.toc::-webkit-scrollbar{display:none;}
+  nav.toc a{display:inline-block; font-size:11.5px; letter-spacing:0.03em; color:var(--ink-soft); text-decoration:none; padding:6px 10px; border-radius:999px; border:1px solid var(--line); margin-right:6px;}
+  nav.toc a:hover{color:var(--accent); border-color:var(--accent);}
+
+  section{padding-block:38px; border-bottom:1px solid var(--line); scroll-margin-top:52px;}
+  section:last-of-type{border-bottom:none;}
+  .num{font-family:'IBM Plex Mono',monospace; color:var(--accent); font-size:13px; font-weight:600; display:block; margin-bottom:6px;}
+  section > h2{font-size:clamp(21px,4vw,27px); margin:0 0 6px;}
+  .lede{color:var(--ink-soft); margin:0 0 22px; max-width:64ch;}
+
+  .callout{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:6px; padding:14px 16px; font-size:14px; color:var(--ink-soft); margin-block:18px;}
+  .callout b{color:var(--ink);}
+
+  .tablewrap{overflow-x:auto; margin-block:16px;}
+  table{border-collapse:collapse; width:100%; font-size:12.8px; min-width:560px;}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{color:var(--ink-faint); font-weight:600; text-transform:uppercase; font-size:10.5px; letter-spacing:0.04em; white-space:nowrap;}
+  td{font-family:'IBM Plex Sans',sans-serif;}
+
+  .event{border:1px solid var(--line); border-radius:10px; padding:20px; margin-block:16px; background:var(--surface);}
+  .event .event-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px;}
+  .event h3{font-size:18px; margin:0;}
+  .event .org{font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em;}
+  .event .rubric{font-size:13px; color:var(--teal); margin:10px 0 14px; border-left:2px solid var(--teal); padding-left:10px;}
+  .winrow{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:12px;}
+  .wincard{background:var(--surface-soft); border-radius:8px; padding:13px; font-size:13.3px;}
+  .wincard b{display:block; font-size:14px; margin-bottom:4px;}
+  .wincard .stack{color:var(--ink-faint); font-size:11.5px; margin-top:6px;}
+
+  .grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-block:18px;}
+  .pcard{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px; box-shadow:var(--shadow);}
+  .pcard h4{margin:0 0 8px; font-size:15px;}
+  .pcard p{margin:0; font-size:13.3px; color:var(--ink-soft); max-width:none;}
+  .pcard .badge{display:inline-block; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; padding:3px 7px; border-radius:4px; margin-bottom:8px; font-weight:600;}
+  .badge.hot{background:var(--tag-warn-bg); color:var(--tag-warn-ink);}
+  .badge.fresh{background:var(--tag-good-bg); color:var(--tag-good-ink);}
+
+  .checklist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column;}
+  .checklist li{display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); font-size:14.5px;}
+  .checklist li:last-child{border-bottom:none;}
+  .checklist .box{flex-shrink:0; width:16px; height:16px; border:1.5px solid var(--ink-faint); border-radius:4px; margin-top:2px;}
+  .checklist b{color:var(--ink);}
+  .checklist span{color:var(--ink-soft);}
+
+  footer{padding-block:30px 50px; font-size:12.5px; color:var(--ink-faint);}
+  footer .srcs{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+  footer a{color:var(--ink-faint);}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="kicker">Companion to the Z Datathon Playbook</span>
+  <h1>The rest of the circuit</h1>
+  <p class="sub">IBM Z Datathon sits in a recognizable category: corporate-sponsored, student-only, tech-for-good competitions. Four of the other major ones — IBM's own Call for Code, Google's Solution Challenge, Microsoft's Imagine Cup, and NASA Space Apps — have run for years with fully public winners. Here's what actually won across all of them, and what that says about competing in this category generally.</p>
+</header>
+
+<nav class="toc">
+  <a href="#events">The four events</a>
+  <a href="#rubrics">Rubrics side by side</a>
+  <a href="#patterns">Cross-event patterns</a>
+  <a href="#backtoz">Back to your prep</a>
+</nav>
+
+<section id="events">
+  <span class="num">01</span>
+  <h2>Four completed comparables</h2>
+  <p class="lede">All four are multi-year, well-documented, and structurally close cousins of IBM Z Datathon: a corporate platform owner, a student-only field, a social-good framing, and (mostly) a required tie to the sponsor's specific technology.</p>
+
+  <div class="tablewrap">
+    <table>
+      <tr><th>Event</th><th>Sponsor</th><th>Format</th><th>Required tech</th><th>Top prize</th></tr>
+      <tr><td>Call for Code</td><td>IBM / Linux Foundation</td><td>Months-long, open build → global finals</td><td>watsonx, IBM Cloud, Watson APIs</td><td>$50,000 per category</td></tr>
+      <tr><td>Solution Challenge</td><td>Google (GDSC/GDG)</td><td>~3-month build, submitted as a demo video</td><td>Any Google tech (Firebase, Cloud, Gemini API, Flutter)</td><td>Top 3 + People's Choice, funding/mentorship</td></tr>
+      <tr><td>Imagine Cup</td><td>Microsoft</td><td>Multi-round: online semis → regional finals → world champ</td><td>≥2 Microsoft AI services (Azure, GPT-4/Copilot stack)</td><td>Up to $100K non-dilutive (Launch) or $5M (Scale)</td></tr>
+      <tr><td>Space Apps Challenge</td><td>NASA + partner agencies</td><td>48-hour global hackathon, then global judging round</td><td>NASA open data/APIs</td><td>Recognition + agency mentorship, no fixed cash figure publicized</td></tr>
+      <tr><td>IBM Z Datathon</td><td>IBM Z / Shooting Stars Foundation</td><td>Single 24-hour sprint</td><td>IBM Z / LinuxONE</td><td>$1,000 / $750 / $500 + Z credits</td></tr>
+    </table>
+  </div>
+
+  <div class="event">
+    <div class="event-head"><h3>Call for Code</h3><span class="org">IBM · sustainability, 2023 cycle</span></div>
+    <p class="rubric">Multi-category structure (Developer / University / Startup) rather than one winner — meant to pull in both hobbyists and small companies, not just students.</p>
+    <div class="winrow">
+      <div class="wincard"><b>FARMISTAR</b>AI-driven weather forecasts and crop guidance for smallholder farmers.<div class="stack">watsonx.ai, watsonx Assistant</div></div>
+      <div class="wincard"><b>Phyto</b>Geospatial + weather analytics to help farmers rehabilitate contaminated soil naturally.<div class="stack">Watson Studio, Environmental Intelligence Suite</div></div>
+      <div class="wincard"><b>Offshelf</b>Expiration-date alerts to cut household food waste.<div class="stack">Watson Speech to Text</div></div>
+    </div>
+  </div>
+
+  <div class="event">
+    <div class="event-head"><h3>Google Solution Challenge</h3><span class="org">Google · 2024 cycle</span></div>
+    <p class="rubric">Judged on four axes: Impact &amp; Problem Understanding, Product &amp; UX, Technology Usage, Presentation Quality — explicitly rewards real user research, not just a working model.</p>
+    <div class="winrow">
+      <div class="wincard"><b>ATTI</b>Voice assistant helping people with mild dementia manage daily routines.<div class="stack">Flutter, Firebase, Gemini API</div></div>
+      <div class="wincard"><b>Alpha-Eye</b>Early detection of preventable eye disease across Sub-Saharan Africa.<div class="stack">ReactJS, Flutter, Google Cloud</div></div>
+      <div class="wincard"><b>Saheli</b> — <i>People's Choice</i>SOS alerts and safe-route navigation for women's urban safety.<div class="stack">Flutter, Firebase, Gemini API</div></div>
+    </div>
+  </div>
+
+  <div class="event">
+    <div class="event-head"><h3>Imagine Cup</h3><span class="org">Microsoft · 2024 world champion</span></div>
+    <p class="rubric">Judged on Microsoft AI implementation depth, inclusive design, solution viability, and founder-led validation — a founder's personal stake in the problem is scored, not incidental.</p>
+    <div class="winrow">
+      <div class="wincard"><b>FROM YOUR EYES</b>Real-time visual description app for people with vision disabilities; founder lost her sight at age 10. Custom vision model at 98% accuracy, 15ms inference.<div class="stack">GPT-4, Azure Cosmos DB, custom vision model</div></div>
+    </div>
+  </div>
+
+  <div class="event">
+    <div class="event-head"><h3>Space Apps Challenge</h3><span class="org">NASA · 2024 cycle</span></div>
+    <p class="rubric">Ten global winners chosen from ~9,900 submissions by NASA and partner-agency scientists — judged squarely on correct, meaningful use of real space-agency data.</p>
+    <div class="winrow">
+      <div class="wincard"><b>WMPGang — Best Use of Science</b>Orrery web app that flags satellite risk zones from real-time near-Earth-object and meteor-stream data.<div class="stack">NASA open datasets, data visualization</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="rubrics">
+  <span class="num">02</span>
+  <h2>The rubrics, side by side</h2>
+  <p class="lede">Different organizers, near-identical scoring logic. Every one of these programs is really grading the same four things — they just word them differently.</p>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Event</th><th>Problem / impact</th><th>Sponsor-tech depth</th><th>Execution / UX</th><th>Something extra</th></tr>
+      <tr><td>IBM Z Datathon</td><td>Value to community</td><td>Use of ML on Z / LinuxONE</td><td>—</td><td>Creativity / novelty</td></tr>
+      <tr><td>Solution Challenge</td><td>Impact &amp; problem understanding</td><td>Meaningful Google tech integration</td><td>Product &amp; UX polish</td><td>Presentation / demo video quality</td></tr>
+      <tr><td>Imagine Cup</td><td>Solution viability</td><td>≥2 Microsoft AI services, well-implemented</td><td>Inclusive design</td><td>Founder-led validation</td></tr>
+      <tr><td>Call for Code</td><td>Sustainability / social impact of the theme</td><td>watsonx / IBM Cloud usage</td><td>—</td><td>Path to real deployment (Linux Foundation open-source support)</td></tr>
+      <tr><td>Space Apps</td><td>Relevance to the challenge prompt</td><td>Correct, meaningful use of NASA data</td><td>—</td><td>Scientific rigor (judged by actual scientists)</td></tr>
+    </table>
+  </div>
+  <p style="font-size:13.5px; color:var(--ink-soft);">Notice the shape: every single one grades <i>(a)</i> who benefits and how much, <i>(b)</i> whether you actually used the sponsor's specific technology in a real way rather than name-checking it, and <i>(c)</i> something about how it's delivered — a demo, an interface, an open-source path. IBM Z Datathon's "creativity/novelty" axis is really a compressed version of Solution Challenge's presentation criterion and Imagine Cup's founder-validation criterion: judges across this whole category are tired of seeing the same idea done the same way.</p>
+</section>
+
+<section id="patterns">
+  <span class="num">03</span>
+  <h2>What keeps winning — and what's now overplayed</h2>
+  <p class="lede">Pull the five events together and the same handful of problem domains keep recurring as winners, which means judges in this exact category have now seen them many times over. A few, though, keep winning specifically <i>because</i> they're executed with unusual technical depth.</p>
+
+  <div class="grid2">
+    <div class="pcard">
+      <span class="badge hot">Crowded across the whole circuit</span>
+      <h4>Food security / food waste</h4>
+      <p>Offshelf and Spoon Share both won in the same general year, on two different sponsors' platforms, with nearly the same core idea (surplus food ↔ people who need it). If you pitch this, you need a genuinely different mechanism, not just a different UI.</p>
+    </div>
+    <div class="pcard">
+      <span class="badge hot">Crowded across the whole circuit</span>
+      <h4>Generic health diagnosis</h4>
+      <p>Same finding as the IBM Z Datathon gallery: dementia support, eye-disease screening, breast cancer, autism — health classifiers appear as winners <i>and</i> as the bulk of also-rans in every single one of these programs.</p>
+    </div>
+    <div class="pcard">
+      <span class="badge fresh">Still winning, still hard to copy</span>
+      <h4>Accessibility, built by someone who needs it</h4>
+      <p>FROM YOUR EYES and Alpha-Eye both won by building for a disability the founder or team had direct experience with, and by proving deep technical execution (98% accuracy, 15ms inference) rather than a rough prototype. This is the strongest single pattern in the whole dataset.</p>
+    </div>
+    <div class="pcard">
+      <span class="badge fresh">Still fresh</span>
+      <h4>Real-time risk-flagging on live/open data</h4>
+      <p>WMPGang's near-Earth-object risk tool won specifically for scientifically correct use of live agency data — directly analogous to the "real-time critical decisions" theme IBM Z Datathon is running this year.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>The throughline:</b> across every event in this category, the projects that placed did one of two things exceptionally well — either they applied real technical depth to an over-familiar problem (Alpha-Eye, FROM YOUR EYES), or they picked a narrower, less-obvious problem and executed it completely (WMPGang, Get Home Safe from the IBM Z gallery). Nobody won by picking a common problem <i>and</i> executing it only shallowly — that's the bulk of the non-winning submissions in every gallery examined.
+  </div>
+</section>
+
+<section id="backtoz">
+  <span class="num">04</span>
+  <h2>What this changes about your IBM Z prep</h2>
+  <p class="lede">Nothing here overturns the earlier playbook — it reinforces the same conclusion from independent evidence, and adds a couple of sharper edges.</p>
+  <ul class="checklist">
+    <li><span class="box"></span><span><b>Personal stake beats abstract empathy.</b> The single strongest pattern across all five programs is a team building for a problem someone on the team actually has — if anyone on your team has a real, specific connection to flood risk, financial exclusion, or data-privacy harm, lead with that in your pitch.</span></li>
+    <li><span class="box"></span><span><b>Health-classifier fatigue is category-wide, not IBM-specific.</b> Every single one of these five programs is oversaturated with diagnosis models. This isn't a reason to avoid healthcare — Alpha-Eye and ATTI both won in healthcare — it's a reason to bring genuine technical depth (a real accuracy number, a working pipeline) if you go there.</span></li>
+    <li><span class="box"></span><span><b>"Presentation quality" is a scored line item elsewhere, even where IBM Z doesn't name it separately.</b> Solution Challenge and Imagine Cup both explicitly grade the demo video/pitch. Treat your IBM Z pitch with the same rigor even though its rubric folds this into "creativity."</span></li>
+    <li><span class="box"></span><span><b>Single-round formats reward finishing over ambition even more than multi-round ones.</b> Imagine Cup and Call for Code give teams months and multiple rounds to iterate. Your 24 hours is the tightest window of any event on this page — which raises, not lowers, the value of shipping something complete.</span></li>
+  </ul>
+</section>
+
+<footer>
+  <p>Built from official winner announcements and program pages for each event. Some rubric details (Space Apps) are described only in general terms by NASA, since scientific judging notes for that program aren't published in full.</p>
+  <div class="srcs">
+    <a href="https://newsroom.ibm.com/2023-12-06-2023-Call-for-Code-Global-Challenge-Winners-Tackle-Agriculture,-Farming-and-Food-Waste-Issues-with-IBM-Technology" target="_blank">2023 Call for Code Global Challenge winners — IBM Newsroom</a>
+    <a href="https://www.callforcode.org/" target="_blank">Call for Code — program overview</a>
+    <a href="https://blog.google/technology/developers/meet-the-students-that-are-changing-the-world-through-technology/" target="_blank">2024 Solution Challenge winners — Google blog</a>
+    <a href="https://thenewviews.com/google-solution-challenge/" target="_blank">Google Solution Challenge — judging criteria breakdown</a>
+    <a href="https://www.neowin.net/news/the-from-your-eyes-team-is-the-winner-of-microsofts-2024-imagine-cup-student-competition/" target="_blank">FROM YOUR EYES — 2024 Imagine Cup winner, Neowin</a>
+    <a href="https://imaginecup.microsoft.com/en-us/support/faq" target="_blank">Imagine Cup — official FAQ / judging criteria</a>
+    <a href="https://www.miragenews.com/nasa-space-apps-2024-global-winners-announced-1392322/" target="_blank">NASA Space Apps 2024 global winners — Mirage News</a>
+    <a href="https://www.spaceappschallenge.org/nasa-space-apps-2024/awards/global-winners/" target="_blank">NASA Space Apps — global winners page</a>
+  </div>
+</footer>
+
+</div>
+
+</body></html>

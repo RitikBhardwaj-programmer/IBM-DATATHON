@@ -1,0 +1,327 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Federated Learning Toolkit</title>
+<style>
+  :root{
+    --bg:#eef0ea; --surface:#ffffff; --surface-soft:#e4e7de;
+    --ink:#1b2420; --ink-soft:#4b5650; --ink-faint:#7a847d;
+    --accent:#a94e1c; --accent-ink:#ffffff; --teal:#1f6b63;
+    --line:rgba(27,36,32,0.14); --line-strong:rgba(27,36,32,0.28);
+    --tag-warn-bg:#f6e6da; --tag-warn-ink:#8a3d13;
+    --tag-good-bg:#dfeee9; --tag-good-ink:#1a5a52;
+    --code-bg:#e6e9e0;
+    --shadow: 0 1px 2px rgba(20,26,20,0.06), 0 8px 24px -12px rgba(20,26,20,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12160f; --surface:#191f17; --surface-soft:#212820;
+      --ink:#eaeee4; --ink-soft:#b7c0b3; --ink-faint:#828d80;
+      --accent:#e2874b; --accent-ink:#12160f; --teal:#5fb7a8;
+      --line:rgba(234,238,228,0.14); --line-strong:rgba(234,238,228,0.26);
+      --tag-warn-bg:#3a2415; --tag-warn-ink:#f0b587;
+      --tag-good-bg:#183330; --tag-good-ink:#8fd9c8;
+      --code-bg:#20261d; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12160f; --surface:#191f17; --surface-soft:#212820;
+    --ink:#eaeee4; --ink-soft:#b7c0b3; --ink-faint:#828d80;
+    --accent:#e2874b; --accent-ink:#12160f; --teal:#5fb7a8;
+    --line:rgba(234,238,228,0.14); --line-strong:rgba(234,238,228,0.26);
+    --tag-warn-bg:#3a2415; --tag-warn-ink:#f0b587;
+    --tag-good-bg:#183330; --tag-good-ink:#8fd9c8;
+    --code-bg:#20261d; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; padding-inline:20px; line-height:1.55;}
+  .wrap{max-width:860px; margin:0 auto;}
+  h1,h2,h3{font-family:'IBM Plex Sans Condensed','IBM Plex Sans',sans-serif; font-weight:600; text-wrap:balance; line-height:1.15; color:var(--ink);}
+  .mono,.stat,.tag,nav.toc a,.kicker,table,code{font-family:'IBM Plex Mono',ui-monospace,monospace;}
+  a{color:var(--accent);}
+  p{max-width:66ch;}
+
+  header.hero{padding-block:36px 24px; border-bottom:1px solid var(--line-strong);}
+  .kicker{font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:10px;}
+  header.hero h1{font-size:clamp(26px,6vw,40px); margin:0 0 10px;}
+  header.hero .sub{color:var(--ink-soft); font-size:16px; max-width:66ch; margin:0;}
+
+  nav.toc{position:sticky; top:env(safe-area-inset-top,0px); background:var(--bg); z-index:5; padding-block:10px; margin-inline:-20px; padding-inline:20px; border-bottom:1px solid var(--line); overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch;}
+  nav.toc::-webkit-scrollbar{display:none;}
+  nav.toc a{display:inline-block; font-size:11.5px; letter-spacing:0.03em; color:var(--ink-soft); text-decoration:none; padding:6px 10px; border-radius:999px; border:1px solid var(--line); margin-right:6px;}
+  nav.toc a:hover{color:var(--accent); border-color:var(--accent);}
+
+  section{padding-block:38px; border-bottom:1px solid var(--line); scroll-margin-top:52px;}
+  section:last-of-type{border-bottom:none;}
+  .num{font-family:'IBM Plex Mono',monospace; color:var(--accent); font-size:13px; font-weight:600; display:block; margin-bottom:6px;}
+  section > h2{font-size:clamp(21px,4vw,27px); margin:0 0 6px;}
+  .lede{color:var(--ink-soft); margin:0 0 22px; max-width:66ch;}
+
+  .callout{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:6px; padding:14px 16px; font-size:14px; color:var(--ink-soft); margin-block:18px;}
+  .callout b{color:var(--ink);}
+
+  .tablewrap{overflow-x:auto; margin-block:16px;}
+  table{border-collapse:collapse; width:100%; font-size:12.6px; min-width:600px;}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{color:var(--ink-faint); font-weight:600; text-transform:uppercase; font-size:10.5px; letter-spacing:0.04em; white-space:nowrap;}
+  td{font-family:'IBM Plex Sans',sans-serif; font-size:13.3px;}
+
+  .fw-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-block:18px;}
+  .fw-card{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px;}
+  .fw-card h4{margin:0; font-size:15.5px;}
+  .fw-card p{margin:0; font-size:13.2px; color:var(--ink-soft); max-width:none;}
+  .fw-card .fit{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; font-weight:600; padding:3px 8px; border-radius:4px; width:fit-content;}
+  .fit.best{background:var(--tag-good-bg); color:var(--tag-good-ink);}
+  .fit.narrative{background:var(--tag-warn-bg); color:var(--tag-warn-ink);}
+  .fit.skip{background:var(--surface-soft); color:var(--ink-faint);}
+
+  .recommend{border-radius:10px; padding:22px; background:var(--surface); border:1px solid var(--line-strong); position:relative; overflow:hidden;}
+  .recommend::before{content:""; position:absolute; inset:0 0 0 0; width:4px; background:var(--accent);}
+  .recommend h3{margin:0 0 8px; font-size:19px;}
+
+  .layer{border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-block:14px; background:var(--surface); display:flex; gap:16px; align-items:flex-start;}
+  .layer .ln{font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--accent); font-size:20px; flex-shrink:0; width:28px;}
+  .layer h4{margin:0 0 6px; font-size:15.5px;}
+  .layer p{margin:0; font-size:13.6px; color:var(--ink-soft);}
+  .layer .why{display:inline-block; margin-top:8px; font-size:12px; color:var(--teal); border-left:2px solid var(--teal); padding-left:8px;}
+
+  .concept-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; margin-block:18px;}
+  .concept-col h4{font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-faint); margin:0 0 10px;}
+  .concept-col ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px;}
+  .concept-col li{font-size:13.6px; padding-left:14px; border-left:2px solid var(--line-strong); color:var(--ink-soft);}
+  .concept-col li b{color:var(--ink); display:block; font-size:14px; margin-bottom:1px;}
+
+  /* architecture flow */
+  .flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-block:20px; font-size:12.5px;}
+  .flow .box{background:var(--surface-soft); border:1px solid var(--line); border-radius:8px; padding:12px 14px; text-align:center; flex:1 1 130px; min-width:130px;}
+  .flow .box b{display:block; font-size:13.5px; margin-bottom:3px;}
+  .flow .box span{color:var(--ink-faint); font-size:11px;}
+  .flow .arrow{color:var(--accent); font-size:18px; flex:0 0 auto; align-self:center;}
+  .flow .box.dash{border-color:var(--teal); background:var(--tag-good-bg);}
+  @media (max-width:560px){ .flow{flex-direction:column;} .flow .arrow{transform:rotate(90deg);} }
+
+  .stack-table td:first-child{font-family:'IBM Plex Mono',monospace; font-weight:600; white-space:nowrap;}
+
+  .timeline{display:flex; flex-direction:column; border-left:2px solid var(--line-strong); margin-left:6px;}
+  .tl-item{position:relative; padding:0 0 24px 22px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{content:""; position:absolute; left:-7px; top:2px; width:12px; height:12px; border-radius:50%; background:var(--bg); border:2px solid var(--accent);}
+  .tl-item .when{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:4px;}
+  .tl-item h4{margin:0 0 6px; font-size:15px;}
+  .tl-item p{margin:0; font-size:13.4px; color:var(--ink-soft);}
+
+  footer{padding-block:30px 50px; font-size:12.5px; color:var(--ink-faint);}
+  footer .srcs{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+  footer a{color:var(--ink-faint);}
+  code{background:var(--code-bg); padding:1px 5px; border-radius:4px; font-size:0.88em;}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="kicker">Companion to the Z Datathon Playbook · Theme 2, option A</span>
+  <h1>Building the federated-learning demo</h1>
+  <p class="sub">Short answer: yes, mature software already exists for this — you won't be building federated learning from scratch. The real work is choosing the right base, layering in what makes yours more than a tutorial clone, and learning the specific slice of ML/privacy engineering that requires.</p>
+</header>
+
+<nav class="toc">
+  <a href="#landscape">What exists</a>
+  <a href="#improve">Your improvement layer</a>
+  <a href="#concepts">Concepts to learn</a>
+  <a href="#stack">Languages & tools</a>
+  <a href="#architecture">How it fits together</a>
+  <a href="#sequence">Learning order</a>
+</nav>
+
+<section id="landscape">
+  <span class="num">01</span>
+  <h2>The existing landscape</h2>
+  <p class="lede">Federated learning tooling is a genuinely mature space — several frameworks have been in production use for years. None of them will hand you a finished demo, but all of them remove the hardest infrastructure problem: coordinating training across clients that never share raw data.</p>
+
+  <div class="fw-grid">
+    <div class="fw-card">
+      <span class="fit best">Recommended base</span>
+      <h4>Flower (flwr)</h4>
+      <p>Framework-agnostic (PyTorch, TensorFlow, scikit-learn, plain NumPy), actively released on a roughly monthly cadence through early 2026, strong docs, and a built-in simulation mode that runs many "clients" on one laptop — exactly what a 24-hour team needs. Ships official examples for both differential privacy (via Opacus) and secure aggregation (SecAgg+) that you can adapt directly.</p>
+    </div>
+    <div class="fw-card">
+      <span class="fit narrative">Strong narrative, riskier build</span>
+      <h4>IBM federated-learning-lib (IBM FL)</h4>
+      <p>IBM's own open-source enterprise FL framework — supports FedAvg, FedProx, Krum, and Byzantine-tolerant aggregators, plus built-in differential privacy and even fully homomorphic encryption. The obvious platform-story fit for an IBM-judged event, but its last tagged release was August 2023, so expect thinner community support if you hit a bug mid-event.</p>
+    </div>
+    <div class="fw-card">
+      <span class="fit skip">Healthcare-grade, heavier setup</span>
+      <h4>NVIDIA FLARE</h4>
+      <p>Battle-tested in real hospital deployments, strong security/governance model. Smaller community and more enterprise-oriented setup than you need for a 24-hour build.</p>
+    </div>
+    <div class="fw-card">
+      <span class="fit skip">Medical-specific, Kubernetes-heavy</span>
+      <h4>Substra</h4>
+      <p>Purpose-built for cross-institution medical data by Owkin, now under the Linux Foundation. Requires a Kubernetes node per participant — too much infrastructure overhead for a single sprint.</p>
+    </div>
+    <div class="fw-card">
+      <span class="fit skip">Research-oriented</span>
+      <h4>PySyft (OpenMined)</h4>
+      <p>Strong on encrypted computation research, but needs its companion PyGrid layer for real network deployment — more moving parts than Flower for the same demo.</p>
+    </div>
+    <div class="fw-card">
+      <span class="fit skip">Finance-grade, steep curve</span>
+      <h4>FATE (WeBank)</h4>
+      <p>Serious industrial FL used in banking; requires protocol-buffer definitions for custom models. Powerful, but the learning curve doesn't fit a 24-hour window.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Bottom line:</b> build on Flower. It's the only option here where "install it, run the quickstart, adapt the DP and secure-aggregation examples" is realistically a same-day path. Mention IBM FL in your pitch as evidence IBM itself has invested in this exact problem — you don't need to run your demo on it to make that point.
+  </div>
+</section>
+
+<section id="improve">
+  <span class="num">02</span>
+  <h2>What to actually improve</h2>
+  <p class="lede">Because the core coordination problem is already solved by Flower, "build federated learning" by itself won't read as novel to a judge who's seen a Flower quickstart before. The improvement is a stack of four things layered on top of the baseline — each one answers a real, named weakness of plain FedAvg.</p>
+
+  <div class="layer">
+    <span class="ln">01</span>
+    <div><h4>Formal privacy guarantee — DP-SGD via Opacus</h4>
+    <p>Plain federated learning still leaks information through model updates. Wrapping local training with Opacus's <code>PrivacyEngine</code> clips per-sample gradients and adds calibrated noise, giving you an actual (ε, δ) number to put on a slide — "we can state exactly how much privacy each hospital is guaranteed," not just "we don't move the data."</p>
+    <span class="why">Answers: FedAvg alone has no formal privacy proof.</span></div>
+  </div>
+  <div class="layer">
+    <span class="ln">02</span>
+    <div><h4>Secure aggregation — Flower's native SecAgg+</h4>
+    <p>Even with DP, a plain FL server still sees each client's individual update before averaging. SecAgg+ uses cryptographic masking so the server only ever sees the <i>sum</i> of updates — no single hospital's contribution is ever visible on its own. Flower ships a working example of this protocol you can adapt rather than implement from scratch.</p>
+    <span class="why">Answers: the server itself is a trust bottleneck in vanilla FedAvg.</span></div>
+  </div>
+  <div class="layer">
+    <span class="ln">03</span>
+    <div><h4>Faster convergence on realistic (non-IID) data — swap the strategy</h4>
+    <p>Real hospitals or banks don't have identically distributed data — one may see mostly older patients, another mostly a different fraud pattern. Plain FedAvg converges slowly or unevenly here. Swapping in Flower's built-in <code>FedProx</code> or an adaptive server optimizer like <code>FedYogi</code>/<code>FedAdam</code> is a one-line strategy change that measurably cuts the number of rounds needed — a concrete "more efficient" number for your pitch.</p>
+    <span class="why">Answers: FedAvg assumes data is more similar across clients than it really is.</span></div>
+  </div>
+  <div class="layer">
+    <span class="ln">04</span>
+    <div><h4>A live dashboard — the gap none of these frameworks fill</h4>
+    <p>Every framework above is CLI- or notebook-first; none ship a judge-friendly way to <i>see</i> what's happening. A small Streamlit or Flask page that plots accuracy per round, privacy budget (ε) spent so far, and bytes transferred turns an invisible background process into something a judge watches happen live — this alone is a genuine, demoable point of originality.</p>
+    <span class="why">Answers: "trust me, it's private and it's converging" is not a demo.</span></div>
+  </div>
+
+  <div class="recommend">
+    <h3>If you only have time for two of the four</h3>
+    <p>Do the DP-SGD layer and the dashboard first. The DP guarantee is what makes the "without exposure" half of the theme name literally true and gives you a hard number to defend under questioning; the dashboard is what makes the judges actually watch it happen instead of taking your word for it. SecAgg+ and the strategy swap are genuine technical upgrades but are lower priority if the clock runs out — say so honestly in your pitch as "documented next step" rather than skipping the mention entirely.</p>
+  </div>
+</section>
+
+<section id="concepts">
+  <span class="num">03</span>
+  <h2>Concepts you need to actually understand</h2>
+  <p class="lede">Not just tool names — the ideas behind them, because judges will ask "why does this work" and "you used sklearn" isn't an answer.</p>
+
+  <div class="concept-grid">
+    <div class="concept-col">
+      <h4>ML foundations</h4>
+      <ul>
+        <li><b>Training loop basics</b>forward pass, loss, backward pass, optimizer step</li>
+        <li><b>Train/validation/test split</b>and why leakage between them invalidates your accuracy number</li>
+        <li><b>Overfitting vs. generalization</b>especially relevant since each client sees less data than a centralized model would</li>
+        <li><b>Evaluation metrics</b>accuracy alone is misleading on imbalanced data (fraud, rare disease) — learn precision, recall, F1, and why they matter here</li>
+      </ul>
+    </div>
+    <div class="concept-col">
+      <h4>Federated learning core</h4>
+      <ul>
+        <li><b>Client–server FL architecture</b>local training rounds vs. global aggregation rounds</li>
+        <li><b>FedAvg</b>weighted averaging of client model updates by local dataset size</li>
+        <li><b>The non-IID problem</b>why data being different across clients breaks naive averaging</li>
+        <li><b>FedProx / FedYogi / FedAdam</b>what each changes about the baseline and why it helps</li>
+        <li><b>Partial participation</b>handling clients that drop out or sample only a subset each round</li>
+      </ul>
+    </div>
+    <div class="concept-col">
+      <h4>Privacy & security</h4>
+      <ul>
+        <li><b>Differential privacy intuition</b>adding calibrated noise so no single record's presence is provable from the output</li>
+        <li><b>ε (epsilon) and δ (delta)</b>what a "privacy budget" actually means, and that smaller ε = more privacy but less accuracy</li>
+        <li><b>DP-SGD</b>per-sample gradient clipping plus noise injection, and why it needs different sampling (Poisson, not sequential)</li>
+        <li><b>Secure aggregation</b>the idea of cryptographic masking so a server sees only a sum, never an individual update</li>
+        <li><b>(Stretch) Homomorphic encryption</b>computing directly on encrypted values — mention as a future direction even if you don't implement it</li>
+      </ul>
+    </div>
+    <div class="concept-col">
+      <h4>Efficiency</h4>
+      <ul>
+        <li><b>Communication cost</b>why bytes transferred per round matters as much as accuracy in a real deployment</li>
+        <li><b>Quantization / sparsification</b>sending compressed or partial updates instead of full-precision full models</li>
+        <li><b>Convergence speed</b>rounds-to-target-accuracy as a metric distinct from final accuracy</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <span class="num">04</span>
+  <h2>Languages, frameworks, and tools</h2>
+  <div class="tablewrap">
+    <table class="stack-table">
+      <tr><th>Layer</th><th>Choice</th><th>Why this one</th></tr>
+      <tr><td>Language</td><td>Python 3.10+</td><td>Every framework below is Python-first; nothing else is worth learning for this project</td></tr>
+      <tr><td>DL framework</td><td>PyTorch</td><td>Opacus and most Flower privacy examples are PyTorch-native — pairing them with TensorFlow means more glue code, not less</td></tr>
+      <tr><td>FL framework</td><td>Flower (<code>flwr</code>)</td><td>Simulation mode, official DP + SecAgg+ examples, active 2026 releases</td></tr>
+      <tr><td>Differential privacy</td><td>Opacus</td><td>The PyTorch-native DP-SGD library; drop-in <code>PrivacyEngine</code> wrapper</td></tr>
+      <tr><td>Data handling</td><td>NumPy, pandas</td><td>Partitioning a single dataset into non-IID "hospital" or "bank" shards</td></tr>
+      <tr><td>Baseline comparison</td><td>scikit-learn</td><td>Train one centralized model as your control — "our federated model performs within X% of centralized, without centralizing any data" is your headline number</td></tr>
+      <tr><td>Dashboard/demo</td><td>Streamlit (or Flask + Plotly)</td><td>Fastest path from "backend process" to "thing a judge watches happen live"</td></tr>
+      <tr><td>Containerization</td><td>Docker</td><td>Matches how past IBM Z Datathon entries deployed to LinuxONE Community Cloud</td></tr>
+      <tr><td>Version control</td><td>Git + GitHub</td><td>Team coordination and your Devpost/Hack2Skill submission link</td></tr>
+      <tr><td>Prototyping</td><td>Jupyter or Colab</td><td>Sketch the model and data partitioning fast before moving into Flower's client/server script structure</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="architecture">
+  <span class="num">05</span>
+  <h2>How the pieces fit together</h2>
+  <p class="lede">A simplified view of one training round in your demo — this is what you're actually walking judges through.</p>
+  <div class="flow">
+    <div class="box"><b>Client A</b><span>Hospital / bank shard, local data never leaves</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>Local DP-SGD</b><span>Opacus clips + adds noise</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>Masked update</b><span>SecAgg+ hides it from the server</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><b>Flower server</b><span>FedProx/FedYogi aggregation</span></div>
+    <div class="arrow">→</div>
+    <div class="box dash"><b>Live dashboard</b><span>accuracy · ε spent · bytes sent</span></div>
+  </div>
+  <p style="font-size:13.5px; color:var(--ink-soft);">The updated global model then loops back down to every client for the next round. Clients B and C (your other simulated hospitals/banks) run the same left-hand path in parallel — Flower's simulation mode lets you run all of them as processes on one machine for the demo, no separate physical devices required.</p>
+</section>
+
+<section id="sequence">
+  <span class="num">06</span>
+  <h2>Suggested learning order</h2>
+  <p class="lede">Mapped onto the same four-week window from the main playbook — this slots into "Week 2: de-risk the platform" and "Week 3: build the MVP."</p>
+  <div class="timeline">
+    <div class="tl-item"><span class="when">Days 1–2</span><h4>PyTorch refresher + Flower quickstart</h4><p>Run Flower's official quickstart in simulation mode with a toy dataset (e.g. partitioned MNIST) so the client/server/strategy structure is muscle memory before you touch your real data.</p></div>
+    <div class="tl-item"><span class="when">Days 3–4</span><h4>Swap in your real (non-IID) dataset</h4><p>Pick a small tabular or image health/finance dataset (a MedMNIST subset like PneumoniaMNIST, or Kaggle's Credit Card Fraud dataset), partition it deliberately unevenly across 3–5 simulated clients, and get a plain FedAvg baseline training end to end.</p></div>
+    <div class="tl-item"><span class="when">Days 5–6</span><h4>Layer in Opacus</h4><p>Adapt Flower's official Opacus example to your model. Expect an accuracy drop — this is normal and is itself part of your story (state the privacy/accuracy tradeoff honestly with real numbers).</p></div>
+    <div class="tl-item"><span class="when">Days 7–8</span><h4>Add SecAgg+ and try FedProx/FedYogi</h4><p>Adapt Flower's secure-aggregation example; swap your strategy from FedAvg to FedProx or FedYogi and compare rounds-to-target-accuracy against the baseline.</p></div>
+    <div class="tl-item"><span class="when">Days 9–10</span><h4>Build the dashboard</h4><p>Stand up the Streamlit/Flask view plotting accuracy, ε spent, and bytes transferred per round, reading from the same logs your Flower run already produces.</p></div>
+    <div class="tl-item"><span class="when">Ongoing</span><h4>Train your centralized baseline</h4><p>Keep a scikit-learn (or simple PyTorch) centralized model trained on the pooled data running alongside — your comparison number against the federated result is one of the most persuasive things you can show a judge.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>Framework maturity and version details reflect Flower's public release history through early 2026 and the current state of the other frameworks' public repositories — re-check exact version numbers before the event, since these projects release frequently.</p>
+  <div class="srcs">
+    <a href="https://flower.ai/blog/2026-04-12-announcing-flower-1.29-release" target="_blank">Flower 1.29 release notes</a>
+    <a href="https://flower.ai/docs/examples/opacus.html" target="_blank">Flower + Opacus differential privacy example (official docs)</a>
+    <a href="https://flower.ai/docs/examples/flower-secure-aggregation.html" target="_blank">Flower secure aggregation (SecAgg+) example (official docs)</a>
+    <a href="https://towardsdatascience.com/differentially-private-federated-learning-with-flower-and-opacus-e14fb0d2d229/" target="_blank">Differentially Private FL with Flower and Opacus — Towards Data Science</a>
+    <a href="https://github.com/IBM/federated-learning-lib" target="_blank">IBM federated-learning-lib (GitHub)</a>
+    <a href="https://www.apheris.com/resources/blog/top-7-open-source-frameworks-for-federated-learning" target="_blank">Top 7 open-source federated learning frameworks — Apheris</a>
+    <a href="https://opacus.ai/tutorials/" target="_blank">Opacus tutorials — training PyTorch models with differential privacy</a>
+  </div>
+</footer>
+
+</div>
+
+</body></html>
