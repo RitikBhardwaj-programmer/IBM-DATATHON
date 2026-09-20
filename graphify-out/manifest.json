@@ -1,9 +1,9 @@
 {
   "step1_flower_fedavg.py": {
-    "mtime": 1789818442.372691,
-    "seen": 1789868532.1523776,
-    "ast_hash": "a9c93bdd41aba30e1fb0aaa6dc0d48f5",
-    "semantic_hash": "a9c93bdd41aba30e1fb0aaa6dc0d48f5"
+    "mtime": 1789872401.3370953,
+    "seen": 1789888295.4395144,
+    "ast_hash": "11f012c7ef240b421849b35174bc4ea1",
+    "semantic_hash": ""
   },
   "IBM HACKATHON LEARNING.txt": {
     "mtime": 1789816886.6260157,
@@ -12,9 +12,9 @@
     "semantic_hash": "b546d0904d92b1b570732c97c4fba9f2"
   },
   "CLAUDE.md": {
-    "mtime": 1789868652.6991217,
-    "seen": 1789868655.0235276,
-    "ast_hash": "2ba2afeee314d34cfeab565870cb939b",
+    "mtime": 1789888278.3493736,
+    "seen": 1789888295.4395254,
+    "ast_hash": "bee9dec597f85b63cc3df78eebe96469",
     "semantic_hash": ""
   },
   "artifacts/corporate-ai-circuit/index.html": {
@@ -34,5 +34,17 @@
     "seen": 1789868532.152408,
     "ast_hash": "bc6690f42208a27c9dcee531d79a4bac",
     "semantic_hash": "bc6690f42208a27c9dcee531d79a4bac"
+  },
+  "run_step2_sweep.sh": {
+    "mtime": 1789885720.3985035,
+    "seen": 1789888295.4394996,
+    "ast_hash": "5d0a7641b4989808f2aa710edb4349ab",
+    "semantic_hash": ""
+  },
+  "step2_heart_fedavg_fedprox.py": {
+    "mtime": 1789885652.032487,
+    "seen": 1789888295.4395206,
+    "ast_hash": "53cc511b5b34715911b36afde62cfa44",
+    "semantic_hash": ""
   }
 }

@@ -76,6 +76,32 @@
   },
   "nodes": [
     {
+      "id": "step2_heart_fedavg_fedprox_hospitalclient",
+      "label": "HospitalClient",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "hospitalclient",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L123"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_net",
+      "label": "Net",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "net",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L75"
+    },
+    {
       "id": "step1_flower_fedavg_hospitalclient",
       "label": "HospitalClient",
       "_callable": true,
@@ -86,7 +112,7 @@
       "file_type": "code",
       "norm_label": "hospitalclient",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L103"
+      "source_location": "L105"
     },
     {
       "id": "step1_flower_fedavg_net",
@@ -99,7 +125,211 @@
       "file_type": "code",
       "norm_label": "net",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L63"
+      "source_location": "L65"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_baselines",
+      "label": "baselines()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "baselines()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L182"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_client_fn",
+      "label": "client_fn()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "client_fn()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L143"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_get_parameters",
+      "label": "get_parameters()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "get_parameters()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_global_eval",
+      "label": "global_eval()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "global_eval()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L151"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_hospitalclient_evaluate",
+      "label": ".evaluate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": ".evaluate()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L137"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_hospitalclient_fit",
+      "label": ".fit()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": ".fit()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L132"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_hospitalclient_get_parameters",
+      "label": ".get_parameters()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": ".get_parameters()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L129"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_hospitalclient_init",
+      "label": ".__init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": ".__init__()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L124"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_load_hospital",
+      "label": "load_hospital()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "load_hospital()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L46"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_make_loader",
+      "label": "make_loader()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "make_loader()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L118"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_net_forward",
+      "label": ".forward()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": ".forward()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L80"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_net_init",
+      "label": ".__init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": ".__init__()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_server_fn",
+      "label": "server_fn()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "server_fn()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L170"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_set_parameters",
+      "label": "set_parameters()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "set_parameters()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_test",
+      "label": "test()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "test()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L110"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_train",
+      "label": "train()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "train()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L93"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_weighted_avg",
+      "label": "weighted_avg()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "weighted_avg()",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L165"
     },
     {
       "id": "step1_flower_fedavg_client_fn",
@@ -111,7 +341,7 @@
       "file_type": "code",
       "norm_label": "client_fn()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L125"
+      "source_location": "L127"
     },
     {
       "id": "step1_flower_fedavg_dirichlet_partition",
@@ -123,7 +353,7 @@
       "file_type": "code",
       "norm_label": "dirichlet_partition()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L44"
+      "source_location": "L46"
     },
     {
       "id": "step1_flower_fedavg_get_parameters",
@@ -135,7 +365,7 @@
       "file_type": "code",
       "norm_label": "get_parameters()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L72"
+      "source_location": "L74"
     },
     {
       "id": "step1_flower_fedavg_global_eval",
@@ -147,7 +377,7 @@
       "file_type": "code",
       "norm_label": "global_eval()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L136"
+      "source_location": "L138"
     },
     {
       "id": "step1_flower_fedavg_hospitalclient_evaluate",
@@ -159,7 +389,7 @@
       "file_type": "code",
       "norm_label": ".evaluate()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L118"
+      "source_location": "L120"
     },
     {
       "id": "step1_flower_fedavg_hospitalclient_fit",
@@ -171,7 +401,7 @@
       "file_type": "code",
       "norm_label": ".fit()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L113"
+      "source_location": "L115"
     },
     {
       "id": "step1_flower_fedavg_hospitalclient_get_parameters",
@@ -183,7 +413,7 @@
       "file_type": "code",
       "norm_label": ".get_parameters()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L110"
+      "source_location": "L112"
     },
     {
       "id": "step1_flower_fedavg_hospitalclient_init",
@@ -195,7 +425,7 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L104"
+      "source_location": "L106"
     },
     {
       "id": "step1_flower_fedavg_net_forward",
@@ -207,7 +437,7 @@
       "file_type": "code",
       "norm_label": ".forward()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L68"
+      "source_location": "L70"
     },
     {
       "id": "step1_flower_fedavg_net_init",
@@ -219,7 +449,7 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L64"
+      "source_location": "L66"
     },
     {
       "id": "step1_flower_fedavg_server_fn",
@@ -231,7 +461,7 @@
       "file_type": "code",
       "norm_label": "server_fn()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L151"
+      "source_location": "L153"
     },
     {
       "id": "step1_flower_fedavg_set_parameters",
@@ -243,7 +473,7 @@
       "file_type": "code",
       "norm_label": "set_parameters()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L76"
+      "source_location": "L78"
     },
     {
       "id": "step1_flower_fedavg_test",
@@ -255,7 +485,7 @@
       "file_type": "code",
       "norm_label": "test()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L94"
+      "source_location": "L96"
     },
     {
       "id": "step1_flower_fedavg_train",
@@ -267,7 +497,7 @@
       "file_type": "code",
       "norm_label": "train()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L81"
+      "source_location": "L83"
     },
     {
       "id": "step1_flower_fedavg_weighted_avg",
@@ -279,40 +509,106 @@
       "file_type": "code",
       "norm_label": "weighted_avg()",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L146"
+      "source_location": "L148"
     },
     {
-      "id": "context",
+      "id": "step2_heart_fedavg_fedprox",
+      "label": "step2_heart_fedavg_fedprox.py",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "code",
+      "norm_label": "step2_heart_fedavg_fedprox.py",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_py_context",
       "label": "Context",
       "_origin": "ast",
-      "community": 5,
-      "community_name": "step1_flower_fedavg.py",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
       "file_type": "code",
       "norm_label": "context",
       "source_file": "",
       "source_location": ""
     },
     {
-      "id": "no_grad",
+      "id": "step2_heart_fedavg_fedprox_py_no_grad",
       "label": "no_grad",
       "_origin": "ast",
-      "community": 5,
-      "community_name": "step1_flower_fedavg.py",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
       "file_type": "code",
       "norm_label": "no_grad",
       "source_file": "",
       "source_location": ""
     },
     {
-      "id": "numpyclient",
+      "id": "step2_heart_fedavg_fedprox_py_numpyclient",
       "label": "NumPyClient",
       "_origin": "ast",
-      "community": 5,
-      "community_name": "step1_flower_fedavg.py",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
       "file_type": "code",
       "norm_label": "numpyclient",
       "source_file": "",
       "source_location": ""
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_rationale_1",
+      "label": "Step 2: FedAvg vs FedProx on the UCI Heart Disease data, using its 4 REAL\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "rationale",
+      "norm_label": "step 2: fedavg vs fedprox on the uci heart disease data, using its 4 real...",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_rationale_152",
+      "label": "Score the current global model on every hospital's test set (reporting only,\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "rationale",
+      "norm_label": "score the current global model on every hospital's test set (reporting only,...",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L152"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_rationale_183",
+      "label": "Local-only: each hospital trains alone. Centralized: pool every hospital's\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "rationale",
+      "norm_label": "local-only: each hospital trains alone. centralized: pool every hospital's...",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L183"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_rationale_47",
+      "label": "Clean one hospital's file and split it 75/25. All statistics come from THIS\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "rationale",
+      "norm_label": "clean one hospital's file and split it 75/25. all statistics come from this...",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L47"
+    },
+    {
+      "id": "step2_heart_fedavg_fedprox_rationale_94",
+      "label": "Local SGD. If mu > 0 (FedProx) add mu/2 * ||w - w_global||^2 to the loss: a\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "step2_heart_fedavg_fedprox.py",
+      "file_type": "rationale",
+      "norm_label": "local sgd. if mu > 0 (fedprox) add mu/2 * ||w - w_global||^2 to the loss: a...",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L94"
     },
     {
       "id": "step1_flower_fedavg",
@@ -326,6 +622,39 @@
       "source_location": "L1"
     },
     {
+      "id": "step1_flower_fedavg_py_context",
+      "label": "Context",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "step1_flower_fedavg.py",
+      "file_type": "code",
+      "norm_label": "context",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "step1_flower_fedavg_py_no_grad",
+      "label": "no_grad",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "step1_flower_fedavg.py",
+      "file_type": "code",
+      "norm_label": "no_grad",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "step1_flower_fedavg_py_numpyclient",
+      "label": "NumPyClient",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "step1_flower_fedavg.py",
+      "file_type": "code",
+      "norm_label": "numpyclient",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
       "id": "step1_flower_fedavg_rationale_1",
       "label": "Step 1: plain FedAvg with Flower simulation + PyTorch, on deliberately non-IID\u2026",
       "_origin": "ast",
@@ -337,7 +666,7 @@
       "source_location": "L1"
     },
     {
-      "id": "step1_flower_fedavg_rationale_137",
+      "id": "step1_flower_fedavg_rationale_139",
       "label": "Server-side evaluation on a held-out global test set (for our own reporting).",
       "_origin": "ast",
       "community": 5,
@@ -345,10 +674,10 @@
       "file_type": "rationale",
       "norm_label": "server-side evaluation on a held-out global test set (for our own reporting).",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L137"
+      "source_location": "L139"
     },
     {
-      "id": "step1_flower_fedavg_rationale_45",
+      "id": "step1_flower_fedavg_rationale_47",
       "label": "Split indices so each client gets a different class mix (label-skew non-IID).",
       "_origin": "ast",
       "community": 5,
@@ -356,7 +685,52 @@
       "file_type": "rationale",
       "norm_label": "split indices so each client gets a different class mix (label-skew non-iid).",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L45"
+      "source_location": "L47"
+    },
+    {
+      "id": "run_step2_sweep",
+      "label": "run_step2_sweep.sh",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "run_step2_sweep.sh",
+      "file_type": "code",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "norm_label": "run_step2_sweep.sh",
+      "source_file": "run_step2_sweep.sh",
+      "source_location": "L1"
+    },
+    {
+      "id": "run_step2_sweep_pythonioencoding",
+      "label": "PYTHONIOENCODING",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "run_step2_sweep.sh",
+      "file_type": "code",
+      "metadata": {
+        "language": "bash",
+        "kind": "code"
+      },
+      "norm_label": "pythonioencoding",
+      "source_file": "run_step2_sweep.sh",
+      "source_location": "L4"
+    },
+    {
+      "id": "run_step2_sweep_sh__entry",
+      "label": "run_step2_sweep.sh script",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "run_step2_sweep.sh",
+      "file_type": "code",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "norm_label": "run_step2_sweep.sh script",
+      "source_file": "run_step2_sweep.sh",
+      "source_location": "L1"
     },
     {
       "id": "artifacts_corporate_ai_circuit_index_depth_on_familiar_problem_or_narrow_problem",
@@ -509,21 +883,6 @@
       "source_url": null
     },
     {
-      "id": "artifacts_z_datathon_playbook_index_federated_learning_privacy_demo",
-      "label": "Federated learning privacy demo",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 0,
-      "community_name": "Z Datathon Playbook",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "federated learning privacy demo",
-      "source_file": "artifacts/z-datathon-playbook/index.html",
-      "source_location": null,
-      "source_url": null
-    },
-    {
       "id": "artifacts_z_datathon_playbook_index_flood_early_warning",
       "label": "Flood early warning",
       "_origin": "semantic",
@@ -534,21 +893,6 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "flood early warning",
-      "source_file": "artifacts/z-datathon-playbook/index.html",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "artifacts_z_datathon_playbook_index_flower_framework",
-      "label": "Flower framework",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 0,
-      "community_name": "Z Datathon Playbook",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "flower framework",
       "source_file": "artifacts/z-datathon-playbook/index.html",
       "source_location": null,
       "source_url": null
@@ -639,36 +983,6 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "hack2skill registration",
-      "source_file": "artifacts/z-datathon-playbook/index.html",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "artifacts_z_datathon_playbook_index_homomorphic_encryption_tenseal",
-      "label": "Homomorphic encryption TenSEAL",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 0,
-      "community_name": "Z Datathon Playbook",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "homomorphic encryption tenseal",
-      "source_file": "artifacts/z-datathon-playbook/index.html",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "artifacts_z_datathon_playbook_index_ibm_secure_execution_and_pervasive_encryption",
-      "label": "IBM Secure Execution and pervasive encryption",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 0,
-      "community_name": "Z Datathon Playbook",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "ibm secure execution and pervasive encryption",
       "source_file": "artifacts/z-datathon-playbook/index.html",
       "source_location": null,
       "source_url": null
@@ -854,21 +1168,6 @@
       "source_url": null
     },
     {
-      "id": "artifacts_z_datathon_playbook_index_track_2_ai_secured",
-      "label": "Track 2 AI Secured",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 0,
-      "community_name": "Z Datathon Playbook",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "track 2 ai secured",
-      "source_file": "artifacts/z-datathon-playbook/index.html",
-      "source_location": null,
-      "source_url": null
-    },
-    {
       "id": "artifacts_z_datathon_playbook_index_track_3_wildcard",
       "label": "Track 3 Wildcard",
       "_origin": "semantic",
@@ -959,6 +1258,21 @@
       "source_url": null
     },
     {
+      "id": "ibm_hackathon_learning_three_2026_tracks",
+      "label": "Three 2026 tracks",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 0,
+      "community_name": "Z Datathon Playbook",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "three 2026 tracks",
+      "source_file": "IBM HACKATHON LEARNING.txt",
+      "source_location": null,
+      "source_url": null
+    },
+    {
       "id": "artifacts_z_datathon_playbook_index_z_datathon_playbook",
       "label": "Z Datathon Playbook",
       "_origin": "semantic",
@@ -970,36 +1284,6 @@
       "file_type": "document",
       "norm_label": "z datathon playbook",
       "source_file": "artifacts/z-datathon-playbook/index.html",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "claude_md_non_iid_simulated_hospitals",
-      "label": "Non-IID simulated hospitals",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 2,
-      "community_name": "IBM HACKATHON LEARNING.txt",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "non-iid simulated hospitals",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "claude_md_step_1_fedavg_script",
-      "label": "Step 1 FedAvg script",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 2,
-      "community_name": "IBM HACKATHON LEARNING.txt",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "step 1 fedavg script",
-      "source_file": "CLAUDE.md",
       "source_location": null,
       "source_url": null
     },
@@ -1244,21 +1528,6 @@
       "source_url": null
     },
     {
-      "id": "ibm_hackathon_learning_flower_secagg",
-      "label": "Flower SecAgg+",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 2,
-      "community_name": "IBM HACKATHON LEARNING.txt",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "flower secagg+",
-      "source_file": "IBM HACKATHON LEARNING.txt",
-      "source_location": null,
-      "source_url": null
-    },
-    {
       "id": "ibm_hackathon_learning_gradient_clipping",
       "label": "Gradient clipping",
       "_origin": "semantic",
@@ -1269,21 +1538,6 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "gradient clipping",
-      "source_file": "IBM HACKATHON LEARNING.txt",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "ibm_hackathon_learning_homomorphic_encryption_stretch_goal",
-      "label": "Homomorphic Encryption stretch goal",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 2,
-      "community_name": "IBM HACKATHON LEARNING.txt",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "homomorphic encryption stretch goal",
       "source_file": "IBM HACKATHON LEARNING.txt",
       "source_location": null,
       "source_url": null
@@ -1419,36 +1673,6 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "secure aggregation",
-      "source_file": "IBM HACKATHON LEARNING.txt",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "ibm_hackathon_learning_three_2026_tracks",
-      "label": "Three 2026 tracks",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 2,
-      "community_name": "IBM HACKATHON LEARNING.txt",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "three 2026 tracks",
-      "source_file": "IBM HACKATHON LEARNING.txt",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "ibm_hackathon_learning_track_2_ai_secured",
-      "label": "Track 2 AI Secured",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 2,
-      "community_name": "IBM HACKATHON LEARNING.txt",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "track 2 ai secured",
       "source_file": "IBM HACKATHON LEARNING.txt",
       "source_location": null,
       "source_url": null
@@ -1951,6 +2175,21 @@
       "source_url": null
     },
     {
+      "id": "artifacts_z_datathon_playbook_index_federated_learning_privacy_demo",
+      "label": "Federated learning privacy demo",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "federated learning privacy demo",
+      "source_file": "artifacts/z-datathon-playbook/index.html",
+      "source_location": null,
+      "source_url": null
+    },
+    {
       "id": "artifacts_z_datathon_playbook_index_flask_or_streamlit_demo",
       "label": "Flask or Streamlit demo",
       "_origin": "semantic",
@@ -1961,6 +2200,66 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "flask or streamlit demo",
+      "source_file": "artifacts/z-datathon-playbook/index.html",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "artifacts_z_datathon_playbook_index_flower_framework",
+      "label": "Flower framework",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "flower framework",
+      "source_file": "artifacts/z-datathon-playbook/index.html",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "artifacts_z_datathon_playbook_index_homomorphic_encryption_tenseal",
+      "label": "Homomorphic encryption TenSEAL",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "homomorphic encryption tenseal",
+      "source_file": "artifacts/z-datathon-playbook/index.html",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "artifacts_z_datathon_playbook_index_ibm_secure_execution_and_pervasive_encryption",
+      "label": "IBM Secure Execution and pervasive encryption",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "ibm secure execution and pervasive encryption",
+      "source_file": "artifacts/z-datathon-playbook/index.html",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "artifacts_z_datathon_playbook_index_track_2_ai_secured",
+      "label": "Track 2 AI Secured",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "track 2 ai secured",
       "source_file": "artifacts/z-datathon-playbook/index.html",
       "source_location": null,
       "source_url": null
@@ -2056,6 +2355,21 @@
       "source_url": null
     },
     {
+      "id": "claude_md_non_iid_simulated_hospitals",
+      "label": "Non-IID simulated hospitals",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "non-iid simulated hospitals",
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
       "id": "claude_md_opacus",
       "label": "Opacus",
       "_origin": "semantic",
@@ -2101,6 +2415,21 @@
       "source_url": null
     },
     {
+      "id": "claude_md_step_1_fedavg_script",
+      "label": "Step 1 FedAvg script",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "step 1 fedavg script",
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
       "id": "claude_md_teaching_preference_mentor_style",
       "label": "Teaching preference mentor style",
       "_origin": "semantic",
@@ -2141,6 +2470,36 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "flower client fit and evaluate",
+      "source_file": "IBM HACKATHON LEARNING.txt",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "ibm_hackathon_learning_flower_secagg",
+      "label": "Flower SecAgg+",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "flower secagg+",
+      "source_file": "IBM HACKATHON LEARNING.txt",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "ibm_hackathon_learning_homomorphic_encryption_stretch_goal",
+      "label": "Homomorphic Encryption stretch goal",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "homomorphic encryption stretch goal",
       "source_file": "IBM HACKATHON LEARNING.txt",
       "source_location": null,
       "source_url": null
@@ -2201,6 +2560,21 @@
       "contributor": null,
       "file_type": "concept",
       "norm_label": "toolkit stack",
+      "source_file": "IBM HACKATHON LEARNING.txt",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "ibm_hackathon_learning_track_2_ai_secured",
+      "label": "Track 2 AI Secured",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 4,
+      "community_name": "CLAUDE.md",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "track 2 ai secured",
       "source_file": "IBM HACKATHON LEARNING.txt",
       "source_location": null,
       "source_url": null
@@ -2561,7 +2935,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L127",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -2573,35 +2947,11 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L138",
-      "weight": 1.0
-    },
-    {
-      "source": "step1_flower_fedavg_global_eval",
-      "target": "step1_flower_fedavg_set_parameters",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "step1_flower_fedavg.py",
-      "source_location": "L139",
-      "weight": 1.0
-    },
-    {
-      "source": "step1_flower_fedavg_global_eval",
-      "target": "step1_flower_fedavg_test",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "step1_flower_fedavg.py",
       "source_location": "L140",
       "weight": 1.0
     },
     {
-      "source": "step1_flower_fedavg_hospitalclient_evaluate",
+      "source": "step1_flower_fedavg_global_eval",
       "target": "step1_flower_fedavg_set_parameters",
       "relation": "calls",
       "_origin": "ast",
@@ -2609,12 +2959,24 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L119",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "step1_flower_fedavg_global_eval",
+      "target": "step1_flower_fedavg_test",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step1_flower_fedavg.py",
+      "source_location": "L142",
       "weight": 1.0
     },
     {
       "source": "step1_flower_fedavg_hospitalclient_evaluate",
-      "target": "step1_flower_fedavg_test",
+      "target": "step1_flower_fedavg_set_parameters",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -2622,6 +2984,18 @@
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
       "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "step1_flower_fedavg_hospitalclient_evaluate",
+      "target": "step1_flower_fedavg_test",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step1_flower_fedavg.py",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -2633,7 +3007,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L114",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -2645,7 +3019,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L115",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -2657,7 +3031,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L116",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -2669,7 +3043,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L111",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -2681,7 +3055,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L105",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -2693,7 +3067,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L65",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -2705,7 +3079,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L158",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -2717,43 +3091,318 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L158",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_baselines",
+      "target": "step2_heart_fedavg_fedprox_net",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_baselines",
+      "target": "step2_heart_fedavg_fedprox_make_loader",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_baselines",
+      "target": "step2_heart_fedavg_fedprox_train",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_baselines",
+      "target": "step2_heart_fedavg_fedprox_test",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L189",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_client_fn",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_global_eval",
+      "target": "step2_heart_fedavg_fedprox_net",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_global_eval",
+      "target": "step2_heart_fedavg_fedprox_set_parameters",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_global_eval",
+      "target": "step2_heart_fedavg_fedprox_test",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L155",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_evaluate",
+      "target": "step2_heart_fedavg_fedprox_set_parameters",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_evaluate",
+      "target": "step2_heart_fedavg_fedprox_test",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_fit",
+      "target": "step2_heart_fedavg_fedprox_set_parameters",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_fit",
+      "target": "step2_heart_fedavg_fedprox_train",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_fit",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_get_parameters",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_get_parameters",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_get_parameters",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_init",
+      "target": "step2_heart_fedavg_fedprox_net",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient_init",
+      "target": "step2_heart_fedavg_fedprox_make_loader",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_net_init",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_init",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_server_fn",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_get_parameters",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_server_fn",
+      "target": "step2_heart_fedavg_fedprox_net",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
       "source": "step1_flower_fedavg_test",
-      "target": "no_grad",
+      "target": "step1_flower_fedavg_py_no_grad",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "decorator",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L93",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_test",
+      "target": "step2_heart_fedavg_fedprox_py_no_grad",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "decorator",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L109",
       "weight": 1.0
     },
     {
       "source": "step1_flower_fedavg_client_fn",
-      "target": "context",
+      "target": "step1_flower_fedavg_py_context",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L125",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
       "source": "step1_flower_fedavg_server_fn",
-      "target": "context",
+      "target": "step1_flower_fedavg_py_context",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L151",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_client_fn",
+      "target": "step2_heart_fedavg_fedprox_py_context",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_server_fn",
+      "target": "step2_heart_fedavg_fedprox_py_context",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "run_step2_sweep",
+      "target": "run_step2_sweep_sh__entry",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "run_step2_sweep.sh",
+      "source_location": "L1",
       "weight": 1.0
     },
     {
@@ -2764,7 +3413,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L103",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
@@ -2775,7 +3424,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L125",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -2786,7 +3435,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L136",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -2797,7 +3446,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L146",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -2808,7 +3457,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L151",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -2819,7 +3468,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L44",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -2830,7 +3479,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L63",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -2841,7 +3490,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L72",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -2852,7 +3501,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L76",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -2863,7 +3512,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L81",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -2874,18 +3523,183 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L94",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_test",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_make_loader",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_client_fn",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_global_eval",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_weighted_avg",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_server_fn",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_baselines",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_load_hospital",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_net",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_get_parameters",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_set_parameters",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox",
+      "target": "step2_heart_fedavg_fedprox_train",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "run_step2_sweep",
+      "target": "run_step2_sweep_pythonioencoding",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "run_step2_sweep.sh",
+      "source_location": "L4",
       "weight": 1.0
     },
     {
       "source": "step1_flower_fedavg_hospitalclient",
-      "target": "numpyclient",
+      "target": "step1_flower_fedavg_py_numpyclient",
       "relation": "inherits",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L103",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient",
+      "target": "step2_heart_fedavg_fedprox_py_numpyclient",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -2896,7 +3710,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L104",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -2907,7 +3721,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L110",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -2918,7 +3732,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L113",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -2929,7 +3743,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L118",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -2940,7 +3754,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L64",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -2951,7 +3765,73 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L68",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_init",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_get_parameters",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_fit",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_hospitalclient",
+      "target": "step2_heart_fedavg_fedprox_hospitalclient_evaluate",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_net",
+      "target": "step2_heart_fedavg_fedprox_net_init",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_net",
+      "target": "step2_heart_fedavg_fedprox_net_forward",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -2966,25 +3846,80 @@
       "weight": 1.0
     },
     {
-      "source": "step1_flower_fedavg_rationale_137",
+      "source": "step1_flower_fedavg_rationale_139",
       "target": "step1_flower_fedavg_global_eval",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L137",
+      "source_location": "L139",
       "weight": 1.0
     },
     {
-      "source": "step1_flower_fedavg_rationale_45",
+      "source": "step1_flower_fedavg_rationale_47",
       "target": "step1_flower_fedavg_dirichlet_partition",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L45",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_rationale_1",
+      "target": "step2_heart_fedavg_fedprox",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_rationale_152",
+      "target": "step2_heart_fedavg_fedprox_global_eval",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_rationale_183",
+      "target": "step2_heart_fedavg_fedprox_baselines",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_rationale_47",
+      "target": "step2_heart_fedavg_fedprox_load_hospital",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_rationale_94",
+      "target": "step2_heart_fedavg_fedprox_train",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L94",
       "weight": 1.0
     },
     {
@@ -2996,7 +3931,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L159",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -3008,7 +3943,31 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "step1_flower_fedavg.py",
-      "source_location": "L160",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_server_fn",
+      "target": "step2_heart_fedavg_fedprox_global_eval",
+      "relation": "indirect_call",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "context": "argument",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "step2_heart_fedavg_fedprox_server_fn",
+      "target": "step2_heart_fedavg_fedprox_weighted_avg",
+      "relation": "indirect_call",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "context": "argument",
+      "source_file": "step2_heart_fedavg_fedprox.py",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -5986,5 +6945,6 @@
       "confidence_score": 1.0,
       "source_file": "artifacts/z-datathon-playbook/index.html"
     }
-  ]
+  ],
+  "built_at_commit": "4c987696b7e1f6a731a42fe5f34b9754e16b0666"
 }
