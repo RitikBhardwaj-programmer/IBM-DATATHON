@@ -12,9 +12,9 @@
     "semantic_hash": "b546d0904d92b1b570732c97c4fba9f2"
   },
   "CLAUDE.md": {
-    "mtime": 1789888278.3493736,
-    "seen": 1789888295.4395254,
-    "ast_hash": "bee9dec597f85b63cc3df78eebe96469",
+    "mtime": 1791490445.8653553,
+    "seen": 1791490448.865265,
+    "ast_hash": "9f46fc8e051ffd495a8e8ea7feea7f13",
     "semantic_hash": ""
   },
   "artifacts/corporate-ai-circuit/index.html": {
@@ -45,6 +45,30 @@
     "mtime": 1789885652.032487,
     "seen": 1789888295.4395206,
     "ast_hash": "53cc511b5b34715911b36afde62cfa44",
+    "semantic_hash": ""
+  },
+  ".claude/settings.local.json": {
+    "mtime": 1791355623.585793,
+    "seen": 1791490448.8652296,
+    "ast_hash": "a361cb633690d90308287ec28274f569",
+    "semantic_hash": ""
+  },
+  "run_step3_sweep.sh": {
+    "mtime": 1791487829.149884,
+    "seen": 1791490448.8652487,
+    "ast_hash": "a5ec5f519ed09ea993c57ce6b2d09010",
+    "semantic_hash": ""
+  },
+  "step3_heart_dp.py": {
+    "mtime": 1791487799.971027,
+    "seen": 1791490448.8652594,
+    "ast_hash": "522d17fc338f19de63ba812638ead53c",
+    "semantic_hash": ""
+  },
+  "test_step3_dp.py": {
+    "mtime": 1791487806.2214866,
+    "seen": 1791490448.8652616,
+    "ast_hash": "57dd767b4fbecaf04eaab4be33b5d6a7",
     "semantic_hash": ""
   }
 }

@@ -6,5 +6,7 @@
   "4": "CLAUDE.md",
   "5": "step1_flower_fedavg.py",
   "6": "Corporate AI Circuit",
-  "7": "run_step2_sweep.sh"
+  "7": "run_step2_sweep.sh",
+  "8": "step3_heart_dp.py",
+  "9": "run_step3_sweep.sh"
 }
