@@ -12,9 +12,9 @@
     "semantic_hash": "b546d0904d92b1b570732c97c4fba9f2"
   },
   "CLAUDE.md": {
-    "mtime": 1791527162.96678,
-    "seen": 1791527166.372152,
-    "ast_hash": "fda8a9157a7e649f29fa7fce9e9a8cfa",
+    "mtime": 1791537102.7233255,
+    "seen": 1791538284.5963452,
+    "ast_hash": "be64746d59ebd5a73ad112542bede4f1",
     "semantic_hash": ""
   },
   "artifacts/corporate-ai-circuit/index.html": {
@@ -72,21 +72,87 @@
     "semantic_hash": ""
   },
   "run_step4_sweep.sh": {
-    "mtime": 1791524450.5544055,
-    "seen": 1791527166.3721266,
-    "ast_hash": "ed0eccee8cc5cdc245e08cf585222480",
+    "mtime": 1791528629.255773,
+    "seen": 1791538284.5963337,
+    "ast_hash": "b7003a5e57eb619176cf829b71c2717e",
     "semantic_hash": ""
   },
   "step4_heart_secagg.py": {
-    "mtime": 1791524633.3308456,
-    "seen": 1791527166.3721423,
-    "ast_hash": "5dc2cbcbefe6d1b1ae65c6cc87676068",
+    "mtime": 1791538120.1234658,
+    "seen": 1791538284.5963392,
+    "ast_hash": "8c51f40bc7db14890b88b236d549aab3",
     "semantic_hash": ""
   },
   "test_step4_secagg.py": {
-    "mtime": 1791526826.410282,
-    "seen": 1791527166.3721488,
+    "mtime": 1791528629.258155,
+    "seen": 1791538284.5963433,
     "ast_hash": "be08f6c98077e7abe89e17d0686eea01",
+    "semantic_hash": ""
+  },
+  "dashboard/__init__.py": {
+    "mtime": 1791530543.5197723,
+    "seen": 1791538284.59632,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "dashboard/replays/golden_run/inspect.json": {
+    "mtime": 1791537809.618176,
+    "seen": 1791538284.5963228,
+    "ast_hash": "5b860ac52ceb8459fc2456cd6b30e5c3",
+    "semantic_hash": ""
+  },
+  "dashboard/replays/golden_run/plain_meta.json": {
+    "mtime": 1791537809.6023922,
+    "seen": 1791538284.5963242,
+    "ast_hash": "6c1857af9e724a2665307ef64a06fd54",
+    "semantic_hash": ""
+  },
+  "dashboard/server.py": {
+    "mtime": 1791538099.5522232,
+    "seen": 1791538284.596325,
+    "ast_hash": "b1e5abeead35320683417603148f6a1f",
+    "semantic_hash": ""
+  },
+  "dashboard/sweeps.py": {
+    "mtime": 1791530415.9330049,
+    "seen": 1791538284.5963259,
+    "ast_hash": "626f2107bd90e7efbd11f8a174387f3d",
+    "semantic_hash": ""
+  },
+  "dashboard/test_sweeps.py": {
+    "mtime": 1791530324.8861704,
+    "seen": 1791538284.5963268,
+    "ast_hash": "8bce98f9dea6c7667df5e0f5aeb9612f",
+    "semantic_hash": ""
+  },
+  "test_dashboard.py": {
+    "mtime": 1791538126.7752242,
+    "seen": 1791538284.5963402,
+    "ast_hash": "569ed541a5e6aa7bfdb5361a5dae80fc",
+    "semantic_hash": ""
+  },
+  ".claude/plans/dashboard.md": {
+    "mtime": 1791530189.682299,
+    "seen": 1791538284.596344,
+    "ast_hash": "fd47afe71e28ed33c2b92ead13a72624",
+    "semantic_hash": ""
+  },
+  "dashboard/static/index.html": {
+    "mtime": 1791530543.589733,
+    "seen": 1791538284.596351,
+    "ast_hash": "ac383f10b3dc6c7ed026a922c0b0c91c",
+    "semantic_hash": ""
+  },
+  "team/zero_exposure_logo.png": {
+    "mtime": 1791530497.9555466,
+    "seen": 1791538284.5963519,
+    "ast_hash": "96bbc098afacfd3ed749f5775c04adc1",
+    "semantic_hash": ""
+  },
+  "team/zero_exposure_logo.svg": {
+    "mtime": 1791530490.2355676,
+    "seen": 1791538284.5963528,
+    "ast_hash": "7de7f69539539016705cce938211f9cc",
     "semantic_hash": ""
   }
 }

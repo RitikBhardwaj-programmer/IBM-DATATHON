@@ -1,0 +1,1 @@
+{"round": 1, "hospital": 0, "stage": "collect_masked_vectors", "secagg": 1, "plaintext_arrays_out": 0, "bytes_out": 2832, "mod_range": 4294967296, "quant_range": 4194304, "clipping_range": 8.0, "max_weight": 300.0, "masked_len": 274, "masked_shapes": [[1], [16, 15], [16], [1, 16], [1]]}
