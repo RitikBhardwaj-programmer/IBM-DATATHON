@@ -1,4 +1,339 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Federated Privacy Dashboard</title></head>
-<body><h1>Federated Privacy Dashboard</h1><p>Placeholder: the real UI is built in stage 2. API: <a href="/docs">/docs</a></p></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Zero Exposure: private federated learning dashboard</title>
+<link rel="icon" href="zero_exposure_logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#live">Skip to the live run</a>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#top" aria-label="Zero Exposure, top of page">
+      <img src="zero_exposure_logo.svg" alt="" width="44" height="44">
+      <span><strong>Zero Exposure</strong><small>IBM Z Datathon 2026 · AI Secured</small></span>
+    </a>
+    <nav aria-label="Panels">
+      <a href="#live">1 · Live run</a>
+      <a href="#sees">2 · What the server sees</a>
+      <a href="#tradeoff">3 · Privacy vs accuracy</a>
+      <a href="#how">4 · How it works</a>
+    </nav>
+    <button id="themeBtn" class="btn ghost" type="button" aria-label="Switch colour theme">Theme</button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="heroTitle">
+    <div>
+      <h1 id="heroTitle">Four hospitals train one heart-disease model. No hospital shares a single patient record.</h1>
+      <p class="lead">Each hospital learns on its own data and sends only <em>masked, noise-protected</em> model updates.
+        The server (the coordinator that merges them) never sees any hospital's update on its own.</p>
+    </div>
+    <div class="headline" id="headline" aria-live="polite">
+      <div class="hl-label">Headline, computed from the sweep files</div>
+      <div class="hl-main" id="hlMain">Loading…</div>
+      <div class="hl-sub" id="hlSub"></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== 1. LIVE RUN -->
+  <section id="live" class="panel" aria-labelledby="liveH">
+    <div class="panel-head">
+      <h2 id="liveH"><span class="num">1</span> Live run</h2>
+      <p>Watch the hospitals take turns training (<em>federated learning</em>: the model travels, the data stays). Every round, each hospital
+        spends some privacy budget (<em>epsilon, ε</em>: a number where smaller means stronger privacy) and uploads a masked update
+        (<em>SecAgg+, secure aggregation</em>).</p>
+    </div>
+
+    <form id="ctl" class="controls card" autocomplete="off">
+      <fieldset class="seg" id="modeSeg">
+        <legend>Source</legend>
+        <label><input type="radio" name="mode" value="live" checked><span>Live run</span></label>
+        <label><input type="radio" name="mode" value="replay"><span>Replay (no training)</span></label>
+      </fieldset>
+
+      <div id="liveCtl" class="ctl-grid">
+        <label class="fld">
+          <span class="fld-l">DP noise <output id="noiseOut">1.0</output></span>
+          <input id="noise" type="range" min="0" max="5" step="0.1" value="1.0" aria-describedby="noiseHelp">
+          <small id="noiseHelp">0 = no privacy noise. More noise = stronger privacy (lower ε) but a bit less accuracy.</small>
+        </label>
+        <fieldset class="seg" id="stratSeg">
+          <legend>Averaging</legend>
+          <label><input type="radio" name="strategy" value="fedavg" checked><span>FedAvg</span></label>
+          <label><input type="radio" name="strategy" value="fedprox"><span>FedProx</span></label>
+          <small>FedAvg = plain average. FedProx = average with a leash that keeps each hospital close to the global model.</small>
+        </fieldset>
+        <label class="fld tog">
+          <span class="fld-l">SecAgg+ masking</span>
+          <span class="switch"><input id="secagg" type="checkbox" checked role="switch"><i></i><b id="secaggOut">On</b></span>
+          <small>On = the server only receives masked vectors.</small>
+        </label>
+        <label class="fld">
+          <span class="fld-l">Rounds</span>
+          <input id="rounds" type="number" min="1" max="30" step="1" value="15" inputmode="numeric">
+          <small>1 to 30. Each round takes about 1 to 2 s.</small>
+        </label>
+        <label class="fld">
+          <span class="fld-l">Seed</span>
+          <input id="seed" type="number" min="0" max="99" step="1" value="0" inputmode="numeric">
+          <small>Random start (0 to 99).</small>
+        </label>
+      </div>
+
+      <div id="replayCtl" class="ctl-grid" hidden>
+        <label class="fld">
+          <span class="fld-l">Recording</span>
+          <select id="replaySel"></select>
+          <small>The golden run is a real run saved in the repository.</small>
+        </label>
+        <fieldset class="seg" id="speedSeg">
+          <legend>Speed</legend>
+          <label><input type="radio" name="speed" value="1" checked><span>Real time</span></label>
+          <label><input type="radio" name="speed" value="4"><span>4× faster</span></label>
+          <small>Long start-up pauses in a recording are shortened to 2 s.</small>
+        </fieldset>
+      </div>
+
+      <div class="actions">
+        <button id="startBtn" class="btn primary" type="submit">Start live run</button>
+        <button id="stopBtn" class="btn danger" type="button" disabled>Stop</button>
+        <span id="statusPill" class="pill" role="status">Idle</span>
+      </div>
+    </form>
+
+    <div id="banner" class="banner" role="status" hidden></div>
+    <p id="srv" class="sr-only" aria-live="polite"></p>
+
+    <div class="kpis" aria-label="Run summary">
+      <div class="kpi"><span class="kl">Round</span><span class="kv" id="kRound">–</span></div>
+      <div class="kpi"><span class="kl">Global accuracy</span><span class="kv" id="kAcc">–</span></div>
+      <div class="kpi"><span class="kl">Centralized, same training budget</span><span class="kv" id="kCen">–</span></div>
+      <div class="kpi"><span class="kl">Worst-case ε so far</span><span class="kv" id="kEps">–</span></div>
+      <div class="kpi" title="Array payload bytes counted by the inspector (arrays plus byte-string config values). Excludes message framing.">
+        <span class="kl">Array payload bytes (excl. framing)</span><span class="kv" id="kBytes">–</span><span class="ks" id="kBytesSub"></span></div>
+    </div>
+
+    <div class="grid2">
+      <figure class="card chart-card">
+        <figcaption>
+          <h3>Global model accuracy per round</h3>
+          <p>How often the shared model gets a held-out patient right. The dashed line is a model trained on all data pooled in one place
+            (<em>centralized baseline</em>), given the same training budget (rounds × local epochs).</p>
+        </figcaption>
+        <div class="chart-box"><canvas id="accChart" role="img" aria-label="Global accuracy per round"></canvas></div>
+      </figure>
+      <figure class="card chart-card">
+        <figcaption>
+          <h3>Privacy budget spent (ε) per hospital</h3>
+          <p>Epsilon grows every round (<em>RDP accounting</em>: a way of adding up privacy loss). Bands are a common rule of thumb, not a standard.</p>
+        </figcaption>
+        <div class="chart-box"><canvas id="epsChart" role="img" aria-label="Epsilon per hospital per round"></canvas></div>
+        <div id="epsNote" class="chart-note" hidden></div>
+      </figure>
+    </div>
+
+    <div class="card">
+      <h3>Each hospital: shared model vs training alone</h3>
+      <p class="sub">Accuracy of the global model on each hospital's own test data. The dashed line is what that hospital reaches
+        when it trains only on its own patients (<em>local-only baseline</em>).</p>
+      <div class="grid4" id="hospGrid"></div>
+      <p class="sub" id="majNote"></p>
+    </div>
+
+    <div class="card">
+      <h3>SecAgg+ protocol, per hospital and round</h3>
+      <p class="sub">Each round runs four steps. Each cell below is one hospital in one round; its four blocks light up as the steps finish.</p>
+      <ol class="stage-legend" id="stageLegend">
+        <li><i class="sw s0"></i><div><b>1 Setup</b> <span>(hospitals announce themselves)</span></div></li>
+        <li><i class="sw s1"></i><div><b>2 Share keys</b> <span>(secret-sharing: each hospital splits its mask secrets among the others)</span></div></li>
+        <li><i class="sw s2"></i><div><b>3 Masked upload</b> <span>(only the masked vector leaves)</span></div></li>
+        <li><i class="sw s3"></i><div><b>4 Unmask</b> <span>(survivors help remove the masks from the <em>sum</em>)</span></div></li>
+      </ol>
+      <div id="strip" class="strip" aria-label="SecAgg+ stages per hospital and round"></div>
+      <p id="stripNow" class="sub strip-now"></p>
+    </div>
+  </section>
+
+  <!-- ===================================================== 2. WHAT THE SERVER SEES -->
+  <section id="sees" class="panel" aria-labelledby="seesH">
+    <div class="panel-head">
+      <h2 id="seesH"><span class="num">2</span> What the server sees</h2>
+      <p>Real numbers captured from one hospital in round 1 of a run. Same horizontal axis, same hospital, two views: what it <em>would</em>
+        send without masking, and what the server <em>actually</em> receives.</p>
+    </div>
+
+    <div class="card">
+      <div class="sees-top">
+        <div id="seesSource" class="src">Loading…</div>
+        <div id="badge" class="badge" role="status"></div>
+      </div>
+
+      <div class="shared-axis">
+        <div class="axis-title">Position of each of the hospital's 273 model numbers on the number line 0 … 2³² (4,294,967,296)</div>
+        <figure class="sa-chart">
+          <figcaption><b>Without masking</b> <span>(the update after scaling to whole numbers: what the server would read in the clear)</span></figcaption>
+          <div class="chart-box sa"><canvas id="plainQChart" role="img" aria-label="Unmasked quantized update: all values in one thin spike"></canvas></div>
+        </figure>
+        <figure class="sa-chart">
+          <figcaption><b>With SecAgg+ masking</b> <span>(what the server receives)</span></figcaption>
+          <div class="chart-box sa"><canvas id="maskedChart" role="img" aria-label="Masked vector: values spread across the whole range"></canvas></div>
+        </figure>
+        <p id="seesStats" class="stats"></p>
+      </div>
+
+      <div class="grid2 tight">
+        <figure class="sa-chart">
+          <figcaption><b>The real update (model weights)</b> <span>before any protection: small numbers around 0, a bell shape</span></figcaption>
+          <div class="chart-box sm"><canvas id="rawChart" role="img" aria-label="Histogram of raw weights"></canvas></div>
+        </figure>
+        <figure class="sa-chart">
+          <figcaption><b>The sum the server can recover</b> <span>(global model after round 1)</span></figcaption>
+          <div class="chart-box sm"><canvas id="aggChart" role="img" aria-label="Histogram of aggregate weights"></canvas></div>
+        </figure>
+      </div>
+
+      <ol class="explain">
+        <li><b>Real update.</b> The hospital's trained weights (<em>model parameters</em>), tiny numbers near zero.</li>
+        <li><b>Scaled to whole numbers</b> (<em>quantization</em>: rounding to integers so masks can be added exactly). Without masking, every value lands
+          in a thin sliver of the number line, so the server could read each one.</li>
+        <li><b>Masked.</b> Random masks are added modulo 2³² (<em>modular arithmetic</em>: wrap-around, like a clock). The values now fill the whole range.
+          The server cannot tell them from random numbers.</li>
+        <li><b>Only the sum is recoverable.</b> After the unmask stage the server can recover the combined update of all hospitals, and nothing about one hospital alone.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================================================== 3. PRIVACY VS ACCURACY -->
+  <section id="tradeoff" class="panel" aria-labelledby="trH">
+    <div class="panel-head">
+      <h2 id="trH"><span class="num">3</span> Privacy vs accuracy</h2>
+      <p>Every point is the mean of 5 random seeds, with whiskers of ±1 sample standard deviation (<em>how much the result moves between seeds</em>).
+        Moving left means stronger privacy (smaller ε).</p>
+    </div>
+    <div class="card">
+      <div class="hl-card" id="trHeadline" aria-live="polite">Loading…</div>
+      <fieldset class="chips" id="trFilters">
+        <legend>Show</legend>
+        <label><input type="checkbox" data-f="fedavg" checked><span><i class="mk circle"></i>FedAvg</span></label>
+        <label><input type="checkbox" data-f="fedprox" checked><span><i class="mk tri"></i>FedProx</span></label>
+        <label><input type="checkbox" data-f="on" checked><span><i class="mk fill"></i>SecAgg on (filled)</span></label>
+        <label><input type="checkbox" data-f="off" checked><span><i class="mk ring"></i>SecAgg off (ring)</span></label>
+      </fieldset>
+      <div class="chart-box tall"><canvas id="trChart" role="img" aria-label="Accuracy against epsilon"></canvas></div>
+      <p class="sub">The rightmost column is “no DP” (noise 0): ε is unbounded there. FedAvg and FedProx have the same ε, so their points are drawn 7 pixels apart (left / right); the axis position is the true ε. Filled dots sit exactly inside their rings:
+        SecAgg+ changes <em>who can read the updates</em>, not the numbers, so accuracy and ε are the same with it on or off.</p>
+      <details>
+        <summary>Data table (same numbers as the chart)</summary>
+        <div class="table-wrap"><table id="trTable"></table></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ===================================================== 4. HOW IT WORKS + LIMITS -->
+  <section id="how" class="panel" aria-labelledby="howH">
+    <div class="panel-head">
+      <h2 id="howH"><span class="num">4</span> How it works, and what it does not do</h2>
+    </div>
+    <div class="card">
+      <h3>The pipeline for one round</h3>
+      <svg class="diagram wide" viewBox="0 0 960 440" role="img" aria-labelledby="dgT1 dgD1" xmlns="http://www.w3.org/2000/svg">
+        <title id="dgT1">Architecture diagram</title>
+        <desc id="dgD1">Four hospitals each train locally, add DP-SGD noise, mask the update with SecAgg+, and send it to the Flower server. The server can only recover the sum, builds the global model and sends it back to the hospitals.</desc>
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="dg-arrow-fill"/></marker>
+        </defs>
+        <g class="dg-hosp">
+          <rect class="h0" x="10" y="20" width="170" height="80" rx="12"/><text x="95" y="50" class="t b">cleveland</text><text x="95" y="76" class="t s">private patient data</text>
+          <rect class="h1" x="10" y="120" width="170" height="80" rx="12"/><text x="95" y="150" class="t b">hungarian</text><text x="95" y="176" class="t s">private patient data</text>
+          <rect class="h2" x="10" y="220" width="170" height="80" rx="12"/><text x="95" y="250" class="t b">switzerland</text><text x="95" y="276" class="t s">private patient data</text>
+          <rect class="h3" x="10" y="320" width="170" height="80" rx="12"/><text x="95" y="350" class="t b">va</text><text x="95" y="376" class="t s">private patient data</text>
+        </g>
+        <g class="dg-step">
+          <rect x="250" y="95" width="190" height="250" rx="14"/>
+          <text x="345" y="130" class="t b">DP-SGD</text>
+          <text x="345" y="158" class="t s">clip each patient's</text><text x="345" y="180" class="t s">influence, add noise</text>
+          <text x="345" y="212" class="t s">(differential privacy)</text>
+          <text x="345" y="268" class="t b">SecAgg+ mask</text>
+          <text x="345" y="296" class="t s">add random masks</text><text x="345" y="318" class="t s">that look like noise</text>
+        </g>
+        <g class="dg-server">
+          <rect x="510" y="95" width="200" height="250" rx="14"/>
+          <text x="610" y="135" class="t b">Flower server</text>
+          <text x="610" y="165" class="t s">sees only masked</text><text x="610" y="187" class="t s">vectors, then the SUM</text>
+          <text x="610" y="240" class="t b">averages</text>
+          <text x="610" y="268" class="t s">FedAvg / FedProx</text>
+        </g>
+        <g class="dg-model"><rect x="775" y="165" width="175" height="110" rx="14"/><text x="862" y="205" class="t b">Global model</text><text x="862" y="233" class="t s">goes back to all</text><text x="862" y="255" class="t s">four hospitals</text></g>
+        <g class="dg-line" marker-end="url(#ar)">
+          <path d="M182 60 L248 150" /><path d="M182 160 L248 190" /><path d="M182 260 L248 250" /><path d="M182 360 L248 290" />
+          <path d="M442 220 L508 220" /><path d="M712 220 L773 220" />
+        </g>
+        <path class="dg-back" d="M862 277 L862 420 L95 420 L95 404" marker-end="url(#ar)"/>
+        <text x="440" y="412" class="t s back-l">global model returns; next round starts</text>
+        <text x="476" y="206" class="t xs">masked</text>
+      </svg>
+
+      <svg class="diagram narrow" viewBox="0 0 360 700" role="img" aria-labelledby="dgT2" xmlns="http://www.w3.org/2000/svg">
+        <title id="dgT2">Architecture diagram, vertical layout</title>
+        <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="dg-arrow-fill"/></marker></defs>
+        <g class="dg-hosp">
+          <rect class="h0" x="8" y="10" width="82" height="62" rx="10"/><text x="49" y="46" class="t s">cleveland</text>
+          <rect class="h1" x="96" y="10" width="82" height="62" rx="10"/><text x="137" y="46" class="t s">hungarian</text>
+          <rect class="h2" x="182" y="10" width="82" height="62" rx="10"/><text x="223" y="46" class="t s">switzerl.</text>
+          <rect class="h3" x="270" y="10" width="82" height="62" rx="10"/><text x="311" y="46" class="t s">va</text>
+        </g>
+        <text x="180" y="98" class="t xs">private patient data stays inside each hospital</text>
+        <g class="dg-line" marker-end="url(#ar2)"><path d="M180 108 L180 142"/><path d="M180 262 L180 296"/><path d="M180 416 L180 450"/><path d="M180 560 L180 594"/></g>
+        <g class="dg-step"><rect x="30" y="146" width="300" height="114" rx="12"/>
+          <text x="180" y="180" class="t b">DP-SGD</text><text x="180" y="206" class="t s">clip each patient's influence,</text><text x="180" y="228" class="t s">add noise (differential privacy)</text></g>
+        <g class="dg-step"><rect x="30" y="300" width="300" height="114" rx="12"/>
+          <text x="180" y="334" class="t b">SecAgg+ mask</text><text x="180" y="360" class="t s">add random masks that look</text><text x="180" y="382" class="t s">like noise; upload only that</text></g>
+        <g class="dg-server"><rect x="30" y="454" width="300" height="106" rx="12"/>
+          <text x="180" y="488" class="t b">Flower server</text><text x="180" y="514" class="t s">sees masked vectors, then only</text><text x="180" y="536" class="t s">the SUM; averages it</text></g>
+        <g class="dg-model"><rect x="30" y="598" width="300" height="72" rx="12"/><text x="180" y="628" class="t b">Global model</text><text x="180" y="652" class="t s">sent back to all four hospitals</text></g>
+        <path class="dg-back" d="M340 634 L350 634 L350 90 L340 90"/>
+      </svg>
+      <p class="sub">Dashed return path: the new global model goes back down and the next round starts. Only <b>model updates</b> ever travel, never patient rows.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Threat model</h3>
+        <p><b>Honest-but-curious server</b> (it follows the protocol exactly but tries to read each hospital's update). Against that server:</p>
+        <ul class="tick">
+          <li><b>SecAgg+</b> hides each single update: the server only learns the sum of all updates.</li>
+          <li><b>DP-SGD</b> (differentially private training) limits what even the sum, i.e. the released model, can reveal about one patient. Its strength is the ε you see above.</li>
+        </ul>
+        <p class="sub">The two protections cover different leaks, so the demo uses both.</p>
+      </div>
+      <div class="card">
+        <h3>Limits (read these before trusting the demo)</h3>
+        <ul class="warn">
+          <li><b>One machine.</b> The four hospitals are simulated in one process on one computer, so this shows the <em>protocol</em>, not network security.</li>
+          <li><b>Collusion.</b> With 4 hospitals, if 3 of them work with the server, the 4th hospital's update is revealed (sum minus the three known updates).</li>
+          <li><b>SecAgg does not replace DP.</b> Masks hide single updates only inside the sum. The released model still needs differential privacy.</li>
+          <li><b>Large ε.</b> The hospitals are small, so ε is large (see the epsilon bands above). The privacy cost shows up in ε, not in accuracy.</li>
+          <li><b>Clipping.</b> Values beyond ±8 after scaling are silently clipped; each run asserts that the largest weight stays below 8.</li>
+          <li><b>Demo-grade library details.</b> Flower's SecAgg+ (rounding, key handling) is not an audited production implementation.</li>
+          <li id="seedLimit"></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>Team Zero Exposure. Built with Flower, Opacus and PyTorch on the UCI Heart Disease data (4 hospitals).
+       All numbers on this page come from the running server's API; charts use Chart.js 4.4.1 (MIT), served locally.</p>
+  </footer>
+</main>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

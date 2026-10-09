@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0B1F3A"/>
+  <!-- Shield -->
+  <path d="M256 60 L404 112 V245 C404 342 338 402 256 438 C174 402 108 342 108 245 V112 Z"
+        fill="#10294D" stroke="#2DD4BF" stroke-width="14" stroke-linejoin="round"/>
+  <!-- The "zero": a ring that is also the federation -->
+  <ellipse cx="256" cy="250" rx="72" ry="92" fill="none" stroke="#2DD4BF" stroke-width="12"/>
+  <!-- Updates flowing from hospitals to the secure centre -->
+  <g stroke="#7DD3FC" stroke-width="5" stroke-dasharray="8 7" stroke-linecap="round">
+    <line x1="256" y1="172" x2="256" y2="226"/>
+    <line x1="256" y1="328" x2="256" y2="286"/>
+    <line x1="198" y1="250" x2="232" y2="258"/>
+    <line x1="314" y1="250" x2="280" y2="258"/>
+  </g>
+  <!-- Hospital nodes -->
+  <g fill="#F8FAFC" stroke="#2DD4BF" stroke-width="5">
+    <circle cx="256" cy="158" r="17"/>
+    <circle cx="256" cy="342" r="17"/>
+    <circle cx="184" cy="250" r="17"/>
+    <circle cx="328" cy="250" r="17"/>
+  </g>
+  <g stroke="#E11D48" stroke-width="5" stroke-linecap="round">
+    <path d="M256 151 V165 M249 158 H263"/>
+    <path d="M256 335 V349 M249 342 H263"/>
+    <path d="M184 243 V257 M177 250 H191"/>
+    <path d="M328 243 V257 M321 250 H335"/>
+  </g>
+  <!-- Padlock at the centre: the server sees only the locked sum -->
+  <path d="M243 252 V240 a13 13 0 0 1 26 0 V252" fill="none" stroke="#FACC15" stroke-width="7" stroke-linecap="round"/>
+  <rect x="232" y="250" width="48" height="38" rx="7" fill="#FACC15"/>
+  <circle cx="256" cy="266" r="5" fill="#0B1F3A"/>
+  <rect x="254" y="268" width="4" height="10" rx="2" fill="#0B1F3A"/>
+  <!-- Name -->
+  <text x="256" y="486" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif"
+        font-size="40" font-weight="700" letter-spacing="3" fill="#F8FAFC">ZERO EXPOSURE</text>
+</svg>
