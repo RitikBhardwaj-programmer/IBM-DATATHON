@@ -179,6 +179,12 @@ with TestClient(server.app) as c:
     assert rep["events"] and all("t" in e for e in rep["events"] if e["type"] in ("round", "stage"))
     sw = c.get("/api/sweeps")
     assert sw.status_code in (200, 503), sw.status_code
+    mj = c.get("/api/majority/0")  # majority-class reference: must equal the test-set disease rates step 2 prints for seed 0 (0.46, 0.36, 0.94, 0.74)
+    assert mj.status_code == 200, mj.text
+    hs = mj.json()["hospitals"]
+    assert [hs[h]["n_test"] for h in ("cleveland", "hungarian", "switzerland", "va")] == [76, 74, 31, 50], hs
+    assert abs(hs["switzerland"]["majority_acc"] - 29 / 31) < 1e-6 and abs(hs["va"]["majority_acc"] - 0.74) < 1e-6, hs
+    assert c.get("/api/majority/100").status_code == 422
     print(f"b) OK  /api/replays lists the run ({len(rep['events'])} events); /api/sweeps -> {sw.status_code}")
 
     # ---- e) stop: no child process of the run remains
@@ -190,10 +196,12 @@ with TestClient(server.app) as c:
             pass
         if sys.platform == "win32":
             out = subprocess.run(["powershell", "-NoProfile", "-Command",
-                                  "Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId | ConvertTo-Json"],
+                                  "Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,@{n='c';e={$_.CreationDate.Ticks}} | ConvertTo-Json"],
                                  capture_output=True, text=True).stdout
             rows = json.loads(out)
-            pairs = [(r["ProcessId"], r["ParentProcessId"]) for r in rows]
+            born = {r["ProcessId"]: r["c"] for r in rows}
+            # Windows keeps a dead parent's PID in ParentProcessId and reuses PIDs: a real child is never older than its parent
+            pairs = [(r["ProcessId"], r["ParentProcessId"]) for r in rows if r["ParentProcessId"] in born and r["c"] >= born[r["ParentProcessId"]]]
         else:
             out = subprocess.run(["ps", "-eo", "pid=,ppid="], capture_output=True, text=True).stdout
             pairs = [tuple(map(int, l.split())) for l in out.splitlines() if l.strip()]

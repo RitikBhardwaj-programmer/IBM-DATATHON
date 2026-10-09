@@ -257,6 +257,16 @@ def inspect_payload(insp_dir):
     if plain is not None:
         lim = float(max(np.abs(plain).max(), 1e-9))
         res["plain"] = {"values": plain.tolist(), "hist": hist(plain, -lim, lim, 24), "count": int(plain.size)}
+        meta_f = insp_dir / "plain_meta.json"
+        if meta_f.is_file() and "quant_range" in info:
+            # What this hospital would send WITHOUT the masks: secaggplus_mod scales by num_examples/max_weight, clips to
+            # +-clipping_range and quantizes to [0, quant_range]. Plain rounding here (the real code rounds stochastically; +-1 of ~4e6).
+            nex = json.loads(meta_f.read_text(encoding="utf-8")).get("num_examples")
+            if nex:
+                c, ratio = info["clipping_range"], nex / info["max_weight"]
+                q = np.round((np.clip(plain * ratio, -c, c) + c) * (info["quant_range"] / (2 * c)))
+                res["quantized_plain"] = {"min": float(q.min()), "max": float(q.max()), "ratio": ratio, "num_examples": int(nex),
+                                          "hist": hist(q, 0, info["mod_range"], 32), "count": int(q.size)}
     if masked is not None:
         body = masked[1:]  # masked[0] is the example-count slot that SecAgg+ prepends; the rest are the model parameters
         mod = info["mod_range"]
@@ -320,6 +330,15 @@ app = FastAPI(title="Federated privacy dashboard", lifespan=lifespan)
 _loopback = os.environ.get("HOST", "127.0.0.1") in ("127.0.0.1", "localhost", "::1")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=os.environ.get(
     "ALLOWED_HOSTS", "localhost,127.0.0.1,[::1],testserver" if _loopback else "*").split(","))
+
+
+@app.middleware("http")
+async def revalidate_static(request: Request, call_next):
+    """Static UI files are revalidated on every load (ETag), so an edited page or stylesheet is never served stale from the browser cache."""
+    resp = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        resp.headers.setdefault("Cache-Control", "no-cache")
+    return resp
 
 
 @app.exception_handler(RequestValidationError)
@@ -434,6 +453,30 @@ def get_sweeps():
             raise
         return JSONResponse({"detail": "dashboard/sweeps.py is not available yet"}, status_code=503)
     return mod.to_json(ROOT / "results")
+
+
+HOSPITALS = ("cleveland", "hungarian", "switzerland", "va")  # names of the UCI files, as in step2_heart_fedavg_fedprox.py
+
+
+@app.get("/api/majority/{seed}")
+def get_majority(seed: int):
+    """Accuracy of always answering the more common label, per hospital test set. Same split as step 2 (75/25, stratified, random_state=seed),
+    so it is the 'no model at all' reference for the per-hospital charts. Needs data/heart_disease (not in git): 503 if missing."""
+    if not 0 <= seed <= 99:
+        raise HTTPException(422, "seed must be 0..99")
+    import pandas as pd
+    from sklearn.model_selection import train_test_split
+    out = {}
+    for name in HOSPITALS:
+        f = ROOT / "data" / "heart_disease" / f"processed.{name}.data"
+        if not f.is_file():
+            raise HTTPException(503, "data/heart_disease is not available on this machine")
+        num = pd.read_csv(f, header=None, na_values="?")[13]
+        y = (num > 0).astype("float32").to_numpy()
+        _, te = train_test_split(np.arange(len(y)), test_size=0.25, stratify=y, random_state=seed)
+        rate = float(y[te].mean())
+        out[name] = {"n_test": int(len(te)), "disease_rate": rate, "majority_acc": max(rate, 1 - rate)}
+    return {"seed": seed, "hospitals": out}
 
 
 # static UI last, so /api/* wins. check_dir=False: the folder may be created after import in odd setups.
