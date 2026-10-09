@@ -9,3 +9,4 @@ graphify-out/.graphify_labels.json.sig
 graphify-out/20*/
 graphify-out/.graphify_analysis.json
 data/
+dashboard/runs/

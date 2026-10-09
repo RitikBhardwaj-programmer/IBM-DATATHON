@@ -31,7 +31,7 @@ from step3_heart_dp import (DATA, HOSPITALS, NUM_CLIENTS, NUM_ROUNDS, MU, STRATE
 from flwr.app import Context
 from flwr.client import ClientApp
 from flwr.client.mod import secaggplus_mod
-from flwr.common import ndarrays_to_parameters
+from flwr.common import ConfigRecord, bytes_to_ndarray, ndarrays_to_parameters
 from flwr.server import ServerApp, ServerConfig
 from flwr.server.compat.legacy_context import LegacyContext
 from flwr.server.strategy import FedAvg, FedProx
@@ -45,12 +45,116 @@ MAX_WEIGHT = 300.0  # >= the largest num_examples (cleveland train = 227); keeps
 CLIPPING_RANGE = 8.0
 QUANT_RANGE = 2 ** 22  # flwr default quantization_range
 DEBUG_DIR = os.environ.get("DEBUG_DIR")  # None in normal runs
+# Dashboard hooks (step 5). Both unset = behaviour identical to before. They only observe; they never change what is trained or sent.
+EVENTS_FILE = os.environ.get("EVENTS_FILE")  # server appends one JSON line per event ("baseline", "round")
+INSPECT_DIR = os.environ.get("INSPECT_DIR")  # client mod writes what the server would see (stages_h<pid>.jsonl, inspect.json, *.npy)
+INSPECT_ROUND = int(os.environ.get("INSPECT_ROUND", 1))  # round whose hospital-0 update / masked vector is captured in full
+INSPECT_HOSPITAL = 0
+MOD_RANGE = 2 ** 32  # SecAggPlusWorkflow default modulus_range
 
 
 def debug_write(name, obj):
     if DEBUG_DIR:
         Path(DEBUG_DIR).mkdir(parents=True, exist_ok=True)
         (Path(DEBUG_DIR) / name).write_text(json.dumps(obj))
+
+
+def emit_event(obj):
+    """Append one JSON line to EVENTS_FILE and flush, so a reader sees it at once."""
+    if EVENTS_FILE:
+        try:
+            with open(EVENTS_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(obj) + "\n")
+                f.flush()
+        except Exception as e:  # a hook must never take down a training run
+            print(f"WARNING: could not write EVENTS_FILE: {e}")
+
+
+def inspect_append(name, obj):
+    Path(INSPECT_DIR).mkdir(parents=True, exist_ok=True)
+    with open(Path(INSPECT_DIR) / name, "a", encoding="utf-8") as f:  # one small write per line: safe across client processes
+        f.write(json.dumps(obj) + "\n")
+        f.flush()
+
+
+def inspect_save(name, data):
+    """Write a file atomically (tmp + rename) so the dashboard server never reads half a file."""
+    d = Path(INSPECT_DIR)
+    d.mkdir(parents=True, exist_ok=True)
+    tmp = d / (name + ".tmp")
+    if isinstance(data, np.ndarray):
+        with open(tmp, "wb") as f:
+            np.save(f, data)
+    else:
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+    os.replace(tmp, d / name)
+
+
+def _bytes_in_value(v):
+    if isinstance(v, (bytes, bytearray)):
+        return len(v)
+    if isinstance(v, (list, tuple)):
+        return sum(_bytes_in_value(x) for x in v)
+    return 0
+
+
+def payload_bytes(content):
+    """(array payload bytes, bytes-typed config values) of a RecordDict. Excludes framing/headers and small scalars."""
+    arrays = sum(len(a.data) for rec in content.array_records.values() for a in rec.values())
+    cfg = sum(_bytes_in_value(v) for rec in content.config_records.values() for v in rec.values())
+    return arrays, cfg
+
+
+def n_arrays(content):
+    return sum(len(rec) for rec in content.array_records.values())
+
+
+def inspector_mod(msg, ctxt, call_next):
+    """Client mod placed OUTSIDE secaggplus_mod (mods[0] is the outermost wrapper, see flwr.client.mod.utils.make_ffn).
+
+    It sees the message the server sent and the reply the server will receive, i.e. what crosses the wire.
+    It reads, never edits. The stage name must be read BEFORE call_next: secaggplus_mod pops it from the configs.
+    """
+    if msg.metadata.message_type != "train":
+        return call_next(msg, ctxt)
+    pid = int(ctxt.node_config["partition-id"])
+    t0 = time.time()
+    cfg_in = msg.content.config_records.get("secaggplus_configs")
+    stage = str(cfg_in["stage"]) if cfg_in is not None and "stage" in cfg_in else "plain_fit"
+    in_arrays, in_cfg = payload_bytes(msg.content)
+    n_in = n_arrays(msg.content)
+
+    rec = ctxt.state.config_records.get("inspector")  # per-node round counter (context state survives between messages)
+    rnd = int(rec["round"]) if rec is not None else 0
+    if stage in ("setup", "plain_fit"):  # a fit round starts with the setup stage (or is the only message when SecAgg is off)
+        rnd += 1
+        ctxt.state.config_records["inspector"] = ConfigRecord({"round": rnd})
+
+    reply = call_next(msg, ctxt)
+
+    try:  # observation only: a failure here must never fail the client's fit
+        out_arrays, out_cfg = payload_bytes(reply.content)
+        n_out = n_arrays(reply.content)
+        inspect_append(f"stages_h{pid}.jsonl", {  # one file per hospital: concurrent appends from several processes lost lines on Windows
+            "type": "stage", "t": t0, "t_end": time.time(), "hospital": pid, "round": rnd, "stage": stage,
+            "bytes_in": in_arrays + in_cfg, "bytes_out": out_arrays + out_cfg,
+            "array_bytes_in": in_arrays, "array_bytes_out": out_arrays, "plaintext_arrays_in": n_in, "plaintext_arrays_out": n_out,
+        })
+        if pid == INSPECT_HOSPITAL and rnd == INSPECT_ROUND and stage in ("collect_masked_vectors", "plain_fit"):
+            info = {"round": rnd, "hospital": pid, "stage": stage, "secagg": SECAGG, "plaintext_arrays_out": n_out,
+                    "bytes_out": out_arrays + out_cfg, "mod_range": MOD_RANGE, "quant_range": QUANT_RANGE,
+                    "clipping_range": CLIPPING_RANGE, "max_weight": MAX_WEIGHT}
+            out_cfgrec = reply.content.config_records.get("secaggplus_configs")
+            if out_cfgrec is not None and "masked_params" in out_cfgrec:
+                parts = [bytes_to_ndarray(b) for b in out_cfgrec["masked_params"]]
+                masked = np.concatenate([a.ravel() for a in parts])
+                info["masked_len"] = int(masked.size)
+                info["masked_shapes"] = [list(a.shape) for a in parts]
+                inspect_save("masked.npy", masked.astype(np.uint32))  # values are < 2**32
+            inspect_save("inspect.json", info)  # written last: its presence means plain.npy + masked.npy are complete
+    except Exception as e:
+        print(f"WARNING: inspector_mod failed: {e!r}")
+    return reply
 
 
 # ---------------------------------------------------------------- client = step-3 hospital, wrapped by the SecAgg+ mod
@@ -62,6 +166,10 @@ class SecAggHospitalClient(s3.HospitalClient):
             "proximal_mu": float(config.get("proximal_mu", 0.0)),  # what the server actually sent
             "max_abs_update": max(float(np.abs(p).max()) for p in params),  # BEFORE masking: the clipping risk
         })
+        if INSPECT_DIR and self.pid == INSPECT_HOSPITAL and r == INSPECT_ROUND:  # the plain update, BEFORE masking
+            inspect_save("plain.npy", np.concatenate([p.ravel() for p in params]).astype(np.float32))
+            inspect_save("plain_meta.json", {"round": r, "num_examples": int(n), "shapes": [list(p.shape) for p in params],
+                                             "param_count": int(sum(p.size for p in params))})
         return params, n, metrics
 
 
@@ -70,7 +178,8 @@ def client_fn(context: Context):
 
 
 # `mods` wrap every message the client handles; secaggplus_mod runs the masking protocol on fit messages
-client_app = ClientApp(client_fn=client_fn, mods=[secaggplus_mod] if SECAGG else [])
+# mods[0] is the OUTERMOST wrapper: inspector_mod goes first so it sees the already-masked reply.
+client_app = ClientApp(client_fn=client_fn, mods=([inspector_mod] if INSPECT_DIR else []) + ([secaggplus_mod] if SECAGG else []))
 
 # ---------------------------------------------------------------- server
 history = []
@@ -96,6 +205,11 @@ def global_eval(server_round, parameters, config):
     final_params["params"] = [np.array(p) for p in parameters]
     history.append({"round": server_round, "loss": loss, "acc": acc, "f1": f1, "max_abs_weight": max_abs,
                     "per_hospital_acc": [p[1] for p in per], "epsilon": eps})
+    if INSPECT_DIR and server_round == INSPECT_ROUND:  # the aggregate the server obtains from the masked sum
+        inspect_save("aggregate.npy", np.concatenate([np.asarray(p).ravel() for p in parameters]).astype(np.float32))
+    emit_event({"type": "round", "round": server_round, "total_rounds": NUM_ROUNDS, "acc": acc, "f1": f1, "loss": finite_or_none(loss),
+                "per_hospital_acc": [p[1] for p in per], "epsilon": [finite_or_none(e) for e in eps],
+                "max_abs_weight": finite_or_none(max_abs), "t": time.time()})
     if server_round % 5 == 0 or server_round == NUM_ROUNDS:
         print(f"round {server_round:2d} | pooled test loss {loss:.3f} acc {acc:.3f} F1 {f1:.3f} | max|w| {max_abs:.2f} | "
               f"per-hospital acc {[round(p[1], 2) for p in per]} | eps {[round(e, 2) for e in eps]}")
@@ -144,6 +258,9 @@ def theoretical_quant_step():
 if __name__ == "__main__":
     local_acc, c_acc, c_f1 = s3.baselines()
     print(f"\nlocal-only per-hospital acc {[round(a, 2) for a in local_acc]} | centralized pooled acc {c_acc:.3f} F1 {c_f1:.3f}\n")
+    emit_event({"type": "baseline", "central_acc": c_acc, "central_f1": c_f1, "local_per_hospital_acc": local_acc,
+                "hospitals": HOSPITALS, "secagg": SECAGG, "strategy": STRATEGY, "noise": NOISE, "seed": SEED,
+                "rounds": NUM_ROUNDS, "t": time.time()})
     print(f"secagg = {SECAGG} | strategy = {STRATEGY}" + (f" (mu={MU})" if STRATEGY == "fedprox" else "")
           + f" | seed {SEED} | noise {NOISE} clip {CLIP} delta {DELTA}")
 
