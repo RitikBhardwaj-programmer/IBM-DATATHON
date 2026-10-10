@@ -14,9 +14,10 @@ const fmtBytes = (b) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFix
 const saveLS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode: fine */ } };
 const loadLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
+const FONT = '"IBM Plex Sans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';   // vendored in static/vendor/fonts; same stack as styles.css
 function C() {
-  return { text: css('--text'), muted: css('--muted'), grid: css('--grid'), accent: css('--accent'), sky: css('--sky'),
-    good: css('--good'), warn: css('--warn'), bad: css('--bad'), panel: css('--panel'),
+  return { text: css('--text'), muted: css('--muted'), grid: css('--grid'), accent: css('--model'), lock: css('--lock'), sky: css('--sky'),
+    good: css('--good'), warn: css('--warn'), bad: css('--bad'), panel: css('--surface'),
     hosp: [0, 1, 2, 3].map((i) => css('--h' + i)), fedavg: css('--fedavg'), fedprox: css('--fedprox') };
 }
 
@@ -38,10 +39,11 @@ function restyleOne({ chart, style }) {
 function restyleAll() {
   Chart.defaults.color = css('--muted');
   registry.forEach(restyleOne);
+  drawHero();
 }
 
 Chart.defaults.font.size = 15;
-Chart.defaults.font.family = 'system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+Chart.defaults.font.family = FONT;
 Chart.defaults.animation = false;   // colours are set right after construction; an animated first draw then fails (_fn is not a function). Updates are instant anyway
 Chart.defaults.plugins.tooltip.titleFont = { size: 15 };
 Chart.defaults.plugins.tooltip.bodyFont = { size: 14 };
@@ -285,7 +287,7 @@ const bandsPlugin = {
       const f = Math.max(from, lo), t = Math.min(to, hi); if (t <= f) return;
       const y1 = y.getPixelForValue(t), y2 = y.getPixelForValue(f);
       ctx.save(); ctx.fillStyle = col; ctx.fillRect(a.left, y1, a.right - a.left, y2 - y1);
-      ctx.fillStyle = c.text; ctx.globalAlpha = 0.85; ctx.font = '600 14px system-ui, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
+      ctx.fillStyle = c.text; ctx.globalAlpha = 0.85; ctx.font = `600 14px ${FONT}`; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
       ctx.fillText(label, a.right - 8, y1 + 4); ctx.restore();
     };
     const alpha = (name, al) => { const h = c[name].replace('#', ''); const n = parseInt(h, 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${al / 100})`; };
@@ -301,7 +303,7 @@ const endLabelPlugin = {
       if (!d.endLabel || !chart.isDatasetVisible(i) || !d.data.length) return;
       const meta = chart.getDatasetMeta(i), pt = meta.data[meta.data.length - 1]; if (!pt) return;
       const { ctx, chartArea: a } = chart; ctx.save();
-      ctx.fillStyle = d.borderColor; ctx.font = '700 14px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+      ctx.fillStyle = d.borderColor; ctx.font = `700 14px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
       ctx.fillText(d.endLabel, a.right - 6, pt.y - 6); ctx.restore();
     });
   },
@@ -396,7 +398,7 @@ function buildStrip() {
 function clearPanel1() {
   S.cells = {}; $('strip').innerHTML = ''; $('stripNow').textContent = ''; $('hospGrid').innerHTML = '';
   hospCharts.forEach(unregister); hospCharts = [];
-  ['kRound', 'kAcc', 'kCen', 'kEps', 'kBytes'].forEach((k) => { $(k).textContent = '–'; }); $('kBytesSub').textContent = '';
+  ['kRound', 'kAcc', 'kCen', 'kEps', 'kBytes'].forEach((k) => { $(k).textContent = '–'; }); $('kBytesSub').textContent = ''; $('prog').value = 0;
   $('epsNote').hidden = true;
   for (const ch of [accChart, epsChart]) if (ch) { ch.data.datasets.forEach((d) => { d.data = []; }); ch.update('none'); }
 }
@@ -408,6 +410,7 @@ function render() {
   // KPIs
   $('kRound').textContent = last ? `${last.round} / ${last.total_rounds}` : '–';
   $('kAcc').textContent = last ? pct(last.acc) : '–';
+  $('prog').value = last && last.total_rounds ? Math.round(last.round / last.total_rounds * 100) : 0;
   $('kCen').textContent = base ? pct(base.central_acc) : '–';
   const eps = last && last.epsilon ? last.epsilon.filter((v) => v !== null) : [];
   $('kEps').textContent = !last ? '–' : eps.length ? Math.max(...eps).toFixed(1) : '∞ (no DP)';
@@ -494,6 +497,7 @@ function clearInspect() {
   inspectSeq++; lastInspect = null;
   for (const ch of [plainQChart, maskedChart, rawChart, aggChart]) if (ch) { ch.data.datasets[0].data = []; ch.update('none'); }
   $('seesSource').textContent = 'Waiting for the capture of round 1 …'; $('badge').className = 'badge'; $('badge').textContent = ''; $('seesStats').textContent = '';
+  renderHeroStrip(null);
 }
 function seesSourceHtml() {
   if (!lastInspect) return '';
@@ -506,7 +510,7 @@ const needlePlugin = { id: 'expected', afterDatasetsDraw(chart, _a, opts) {
   if (!opts || !opts.value) return;
   const { ctx, chartArea: a, scales: { y } } = chart, py = y.getPixelForValue(opts.value);
   ctx.save(); ctx.strokeStyle = opts.color; ctx.setLineDash([8, 6]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
-  ctx.setLineDash([]); ctx.fillStyle = opts.color; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.setLineDash([]); ctx.fillStyle = opts.color; ctx.font = `600 13px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
   ctx.fillText(opts.label, a.right - 6, py - 4); ctx.restore();
 } };
 
@@ -537,7 +541,7 @@ function histValues(vals, lo, hi, bins) {
 function makeInspectCharts() {
   plainQChart = register(sharedAxisChart($('plainQChart'), false, 'values'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.bad; d.borderColor = c.bad; });
   maskedChart = register(sharedAxisChart($('maskedChart'), true, 'values per bin'), (ch, c) => {
-    const d = ch.data.datasets[0]; d.backgroundColor = c.accent; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
+    const d = ch.data.datasets[0]; d.backgroundColor = c.lock; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
   const hist = (canvas, xt) => new Chart(canvas, {
     type: 'bar', data: { datasets: [{ data: [], borderWidth: 1 }] },
     options: baseOptions({ interaction: { mode: 'nearest', intersect: true }, layout: { padding: { right: 14 } },
@@ -546,7 +550,7 @@ function makeInspectCharts() {
       plugins: { legend: { display: false } } }),
   });
   rawChart = register(hist($('rawChart'), 'weight value (one hospital, before protection)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.hosp[0]; d.borderColor = c.panel; });
-  aggChart = register(hist($('aggChart'), 'weight value (the combined model)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.sky; d.borderColor = c.panel; });
+  aggChart = register(hist($('aggChart'), 'weight value (the combined model)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.accent; d.borderColor = c.panel; });
 }
 
 async function loadInspect(name, label) {
@@ -562,6 +566,7 @@ function renderInspect(d, label) {
   if (!d.ready) { $('seesSource').textContent = 'Waiting for the capture of round 1 …'; return; }
   const info = d.info, mod = info.mod_range;
   lastInspect = { d, label }; $('seesSource').innerHTML = seesSourceHtml();
+  renderHeroStrip(d);
   const n = Number(info.plaintext_arrays_out), arrays = info.masked_shapes ? info.masked_shapes.length - 1 : null;
   const badge = $('badge'); badge.className = 'badge' + (n > 0 ? ' bad' : '');
   badge.innerHTML = `Plaintext arrays leaving the hospital: <b>${n}</b><small>${info.secagg ? 'SecAgg+ on: only the masked vector is sent.' : 'SecAgg+ was off in this run: the plain weight arrays leave the hospital.'}${arrays && info.secagg ? ` With SecAgg off this counter shows ${arrays} (one per weight array).` : ''}</small>`;
@@ -599,6 +604,78 @@ function renderInspect(d, label) {
       ch.options.scales.x.min = -lim; ch.options.scales.x.max = lim; ch.update('none');
     }
   }
+}
+
+// ============================================================ hero cipher strip
+// 273 ticks, one per model value, placed on the number line 0 ... 2^32. Unmasked they sit in one spot; masked they fill the range.
+// Plain positions are the same close approximation as the "without masking" chart: the raw weights mapped linearly into quantized_plain's [min, max].
+const hero = { plain: null, masked: null, t0: 0, raf: 0, progress: 1 };
+const frac = (i) => { const x = Math.sin(i * 12.9898 + 4.1414) * 43758.5453; return x - Math.floor(x); };   // fixed pseudo-random tick heights
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+function renderHeroStrip(d) {
+  const empty = $('heroEmpty'), cv = $('heroStrip');
+  hero.plain = hero.masked = null; cancelAnimationFrame(hero.raf);
+  const q = d && d.ready && d.quantized_plain, w = d && d.plain && d.plain.values;
+  if (!q || !w || !w.length) {
+    empty.hidden = false; cv.style.visibility = 'hidden';
+    $('heroState').textContent = 'Without masking'; $('heroState').className = '';
+    return;
+  }
+  empty.hidden = true; cv.style.visibility = 'visible';
+  const mod = d.info.mod_range, lo = Math.min(...w), span = (Math.max(...w) - lo) || 1;
+  hero.plain = w.map((v) => (q.min + ((v - lo) / span) * (q.max - q.min)) / mod);
+  hero.masked = d.masked ? d.masked.values.slice(1).map((v) => v / mod) : null;
+  cv.setAttribute('aria-label', hero.masked
+    ? `Cipher strip: the hospital's ${w.length} model values. Without masking they all sit within ${((q.max - q.min) / mod * 100).toFixed(3)} percent of the number line; with masking they are spread across the whole range.`
+    : `Cipher strip: the hospital's ${w.length} model values, all within ${((q.max - q.min) / mod * 100).toFixed(3)} percent of the number line. SecAgg+ was off, so nothing is masked.`);
+  if (!hero.masked || REDUCED) { hero.progress = hero.masked ? 1 : 0; drawHero(); return; }
+  hero.t0 = performance.now() + 700;   // hold the unmasked state for 0.7 s, then mask once
+  const tick = (now) => { hero.progress = Math.min(1, Math.max(0, (now - hero.t0) / 1800)); drawHero(); if (hero.progress < 1) hero.raf = requestAnimationFrame(tick); };
+  hero.progress = 0; drawHero(); hero.raf = requestAnimationFrame(tick);
+}
+
+function drawHero() {
+  const cv = $('heroStrip'); if (!cv || !hero.plain) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext('2d'), c = C(), padX = 6, axisH = 22, n = hero.plain.length, bw = Math.max(2, Math.min(4, W / n * 0.6));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const top = 6, bottom = H - axisH, plotW = W - 2 * padX;
+  ctx.fillStyle = c.muted; ctx.font = `400 12px ${FONT}`; ctx.textBaseline = 'top';
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(padX, bottom + 0.5); ctx.lineTo(W - padX, bottom + 0.5); ctx.stroke();
+  ctx.textAlign = 'left'; ctx.fillText('0', padX, bottom + 6);
+  ctx.textAlign = 'center'; ctx.fillText('½', padX + plotW / 2, bottom + 6);
+  ctx.textAlign = 'right'; ctx.fillText('2³²', W - padX, bottom + 6);
+  const p = hero.progress, st = 0.45;                                   // st: share of the morph used to stagger the ticks
+  for (let i = 0; i < n; i++) {
+    const lt = hero.masked ? ease(Math.min(1, Math.max(0, (p - (i / n) * st) / (1 - st)))) : 0;
+    const x = padX + plotW * (hero.plain[i] + ((hero.masked ? hero.masked[i] : hero.plain[i]) - hero.plain[i]) * lt);
+    const h = (0.3 + 0.7 * frac(i)) * (bottom - top);
+    ctx.globalAlpha = 0.92; ctx.fillStyle = lt > 0.5 ? c.lock : c.bad;
+    ctx.fillRect(x - bw / 2, bottom - h, bw, h);
+  }
+  ctx.globalAlpha = 1;
+  const masked = p >= 1 && hero.masked, label = masked ? 'With SecAgg+ masking' : 'Without masking';
+  if ($('heroState').textContent !== label) $('heroState').textContent = label;
+  $('heroState').className = masked ? 'locked' : '';
+  $('heroCap').textContent = masked
+    ? 'The same 273 values as the server actually receives them: spread across the whole range, indistinguishable from random numbers.'
+    : "One hospital's 273 update values, as positions on the number line 0 to 2³². Unmasked, they sit in one spot, so the server could read each one.";
+}
+new ResizeObserver(() => drawHero()).observe($('heroStrip'));
+
+// ============================================================ nav scrollspy
+{
+  const links = [...document.querySelectorAll('#mainNav a')], secs = links.map((a) => document.querySelector(a.getAttribute('href')));
+  const setCur = (id) => links.forEach((a) => { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+  const vis = new Map();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => vis.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
+    let best = null, bestR = 0; vis.forEach((r, id) => { if (r > bestR) { best = id; bestR = r; } });
+    if (best) setCur(best);
+  }, { rootMargin: '-80px 0px -45% 0px', threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] });
+  secs.forEach((x) => x && io.observe(x));
 }
 
 // ============================================================ panel 3: privacy vs accuracy
@@ -709,6 +786,8 @@ function renderSweeps(data) {
 async function boot() {
   makeAccChart(); makeEpsChart(); makeInspectCharts();
   restyleAll();
+  if (document.fonts) document.fonts.load(`400 15px ${FONT}`).then(() => document.fonts.ready).then(restyleAll).catch(() => {});   // canvas text needs Plex loaded before it is drawn
+  renderHeroStrip(null);
   try { const g = (await getJSON('/api/replays/golden_run')).events.find((e) => e.type === 'baseline'); if (g) { DEFAULT_NAMES = g.hospitals; S.hospitals = g.hospitals.slice(); } } catch (e) { /* keep placeholders */ }
   const jobs = [];
   jobs.push(getJSON('/api/sweeps').then(renderSweeps).catch((e) => {
