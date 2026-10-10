@@ -1,6 +1,6 @@
 /* Zero Exposure dashboard, "the sealed envelope". Gold means locked/protected (masks, the sum, SecAgg on); teal means the model
    (accuracy). Colours are tokens on :root, taken from zero_exposure_logo.svg; the light theme keeps the same roles with darker,
-   AA-checked values. Light theme via prefers-color-scheme or the toggle ([data-theme]). IBM Plex is vendored in vendor/fonts. */
+   AA-checked values. Light is the default for everyone; dark only via the toggle ([data-theme="dark"], saved). IBM Plex is vendored in vendor/fonts. */
 @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-style: normal; font-display: swap;
   src: url("vendor/fonts/IBMPlexSans-Regular-Latin1.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-style: normal; font-display: swap;
@@ -11,9 +11,23 @@
   src: url("vendor/fonts/IBMPlexMono-Regular-Latin1.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --font: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* scale */
+  --r-s: 6px; --r-l: 12px; --hdr: 64px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --bg: #F2F5F9; --surface: #FFFFFF; --surface-2: #EAF0F7; --line: #C3D0E0; --line-strong: #64809F;
+  --text: #0B1F3A; --muted: #3F536C; --grid: rgba(11,31,58,.14);
+  --model: #09766B; --model-ink: #FFFFFF; --lock: #8A6500; --lock-fill: #B8860B; --lock-ink: #FFFFFF; --lock-bg: rgba(138,101,0,.10);
+  --sky: #0B5FA5; --focus: #0B5FA5;
+  --good: #11743A; --warn: #8A5A00; --bad: #B4233C; --good-bg: rgba(17,116,58,.10); --warn-bg: rgba(200,130,0,.14); --bad-bg: rgba(180,35,60,.10);
+  --h0: #B35F00; --h1: #0072B2; --h2: #B3417F; --h3: #00775A;
+  --fedavg: #0B7F73; --fedprox: #6D4AE0;
+  --s0: #0369A1; --s1: #6D4AE0; --s2: #8A6500; --s3: #0B7F73; --plainc: #B4233C;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
   /* surfaces + ink */
   --bg: #0B1F3A; --surface: #10294D; --surface-2: #0C2342; --line: #2A4B78; --line-strong: #6283B0;
   --text: #EAF2FB; --muted: #B3C5DA; --grid: rgba(179,197,218,.20);
@@ -24,33 +38,6 @@
   --h0: #F2A900; --h1: #56B4E9; --h2: #F28DC0; --h3: #3DD6A0;   /* cleveland, hungarian, switzerland, va (Okabe-Ito based) */
   --fedavg: #2DD4BF; --fedprox: #B7A5FF;
   --s0: #7DD3FC; --s1: #A78BFA; --s2: #FACC15; --s3: #2DD4BF; --plainc: #FB7185;
-  /* scale */
-  --r-s: 6px; --r-l: 12px; --hdr: 64px;
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
-}
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #F2F5F9; --surface: #FFFFFF; --surface-2: #EAF0F7; --line: #C3D0E0; --line-strong: #64809F;
-  --text: #0B1F3A; --muted: #3F536C; --grid: rgba(11,31,58,.14);
-  --model: #09766B; --model-ink: #FFFFFF; --lock: #8A6500; --lock-fill: #A87600; --lock-ink: #FFFFFF; --lock-bg: rgba(138,101,0,.10);
-  --sky: #0B5FA5; --focus: #0B5FA5;
-  --good: #11743A; --warn: #8A5A00; --bad: #B4233C; --good-bg: rgba(17,116,58,.10); --warn-bg: rgba(200,130,0,.14); --bad-bg: rgba(180,35,60,.10);
-  --h0: #B35F00; --h1: #0072B2; --h2: #B3417F; --h3: #00775A;
-  --fedavg: #0B7F73; --fedprox: #6D4AE0;
-  --s0: #0369A1; --s1: #6D4AE0; --s2: #8A6500; --s3: #0B7F73; --plainc: #B4233C;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    color-scheme: light;
-    --bg: #F2F5F9; --surface: #FFFFFF; --surface-2: #EAF0F7; --line: #C3D0E0; --line-strong: #64809F;
-    --text: #0B1F3A; --muted: #3F536C; --grid: rgba(11,31,58,.14);
-    --model: #09766B; --model-ink: #FFFFFF; --lock: #8A6500; --lock-fill: #A87600; --lock-ink: #FFFFFF; --lock-bg: rgba(138,101,0,.10);
-    --sky: #0B5FA5; --focus: #0B5FA5;
-    --good: #11743A; --warn: #8A5A00; --bad: #B4233C; --good-bg: rgba(17,116,58,.10); --warn-bg: rgba(200,130,0,.14); --bad-bg: rgba(180,35,60,.10);
-    --h0: #B35F00; --h1: #0072B2; --h2: #B3417F; --h3: #00775A;
-    --fedavg: #0B7F73; --fedprox: #6D4AE0;
-    --s0: #0369A1; --s1: #6D4AE0; --s2: #8A6500; --s3: #0B7F73; --plainc: #B4233C;
-  }
 }
 
 * { box-sizing: border-box; }

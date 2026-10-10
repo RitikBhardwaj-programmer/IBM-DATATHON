@@ -80,12 +80,11 @@ function backedText(ctx, text, x, y, color) {
 }
 
 // theme toggle: explicit choice wins, else the OS setting
-function effectiveTheme() { return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); }
+function effectiveTheme() { return document.documentElement.dataset.theme || 'light'; }   // light first, whatever the OS setting
 function syncThemeBtn() { $('themeBtn').textContent = effectiveTheme() === 'dark' ? 'Light theme' : 'Dark theme'; }
 function setTheme(t) { document.documentElement.dataset.theme = t; saveLS('theme', t); syncThemeBtn(); requestAnimationFrame(restyleAll); }
 { const saved = loadLS('theme'); if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved; }
 $('themeBtn').addEventListener('click', () => setTheme(effectiveTheme() === 'dark' ? 'light' : 'dark'));
-matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { syncThemeBtn(); requestAnimationFrame(restyleAll); });
 syncThemeBtn();
 
 async function getJSON(url, opts) {
@@ -586,7 +585,7 @@ function histValues(vals, lo, hi, bins) {
 function makeInspectCharts() {
   plainQChart = register(sharedAxisChart($('plainQChart'), false, 'values'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.bad; d.borderColor = c.bad; });
   maskedChart = register(sharedAxisChart($('maskedChart'), true, 'values per bin'), (ch, c) => {
-    const d = ch.data.datasets[0]; d.backgroundColor = c.lock; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
+    const d = ch.data.datasets[0]; d.backgroundColor = c.lockFill; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
   const hist = (canvas, xt, xs) => new Chart(canvas, {
     type: 'bar', data: { datasets: [{ data: [], borderWidth: 1 }] },
     options: baseOptions({ interaction: { mode: 'nearest', intersect: true }, layout: { padding: { right: 14 } },
