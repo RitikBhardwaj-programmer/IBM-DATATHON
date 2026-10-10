@@ -12,9 +12,9 @@
     "semantic_hash": "b546d0904d92b1b570732c97c4fba9f2"
   },
   "CLAUDE.md": {
-    "mtime": 1791611000.953383,
-    "seen": 1791612027.081642,
-    "ast_hash": "d721c7b4d1cab1a80df8f26bac32a278",
+    "mtime": 1791642357.7941225,
+    "seen": 1791643309.6714306,
+    "ast_hash": "6982b5e1daef13a3400b88532244cc67",
     "semantic_hash": ""
   },
   "artifacts/corporate-ai-circuit/index.html": {
@@ -60,15 +60,15 @@
     "semantic_hash": ""
   },
   "step3_heart_dp.py": {
-    "mtime": 1791491153.1750014,
-    "seen": 1791527166.372139,
-    "ast_hash": "522d17fc338f19de63ba812638ead53c",
+    "mtime": 1791641790.9941006,
+    "seen": 1791643309.671415,
+    "ast_hash": "6d219cb2ef2975dfaa4f586882130039",
     "semantic_hash": ""
   },
   "test_step3_dp.py": {
-    "mtime": 1791491153.176016,
-    "seen": 1791527166.372146,
-    "ast_hash": "57dd767b4fbecaf04eaab4be33b5d6a7",
+    "mtime": 1791641819.8169127,
+    "seen": 1791643309.671423,
+    "ast_hash": "44e87799bef6cf3f4bfeacd354a7c2b2",
     "semantic_hash": ""
   },
   "run_step4_sweep.sh": {
@@ -108,9 +108,9 @@
     "semantic_hash": ""
   },
   "dashboard/server.py": {
-    "mtime": 1791541575.2727854,
-    "seen": 1791612027.0816264,
-    "ast_hash": "86bd9f622e4e8d634bc59ac995b8c47c",
+    "mtime": 1791622439.2418213,
+    "seen": 1791643309.6713877,
+    "ast_hash": "a6cbd8a508729c2d702e0978f52170c1",
     "semantic_hash": ""
   },
   "dashboard/sweeps.py": {
@@ -138,9 +138,9 @@
     "semantic_hash": ""
   },
   "dashboard/static/index.html": {
-    "mtime": 1791611871.3211012,
-    "seen": 1791612027.0816476,
-    "ast_hash": "f844e7844bd00ab85cefc90c7a23b3b5",
+    "mtime": 1791614329.9072807,
+    "seen": 1791643309.671442,
+    "ast_hash": "d35941d53a45c49de85fc12e2f6363b1",
     "semantic_hash": ""
   },
   "team/zero_exposure_logo.png": {
@@ -156,9 +156,9 @@
     "semantic_hash": ""
   },
   "dashboard/static/app.js": {
-    "mtime": 1791612994.2115512,
-    "seen": 1791613018.010548,
-    "ast_hash": "15ed181cb493e9cbd29c213dabfe2e94",
+    "mtime": 1791614329.9067657,
+    "seen": 1791643309.671391,
+    "ast_hash": "0d001235df5ea94a7da23ea0490a372d",
     "semantic_hash": ""
   },
   "dashboard/static/vendor/chart.umd.min.js": {
@@ -180,9 +180,51 @@
     "semantic_hash": ""
   },
   "dashboard/static/vendor/fonts/OFL.txt": {
-    "mtime": 1791610565.6278741,
-    "seen": 1791612027.0816488,
+    "mtime": 1791614329.9109287,
+    "seen": 1791643309.6714437,
     "ast_hash": "4d4949dda4b23922e334f0cbf6179065",
+    "semantic_hash": ""
+  },
+  "pyproject.toml": {
+    "mtime": 1791621329.2577324,
+    "seen": 1791643309.6714003,
+    "ast_hash": "413b0615fa3ae69cbbb65f3f717b1a61",
+    "semantic_hash": ""
+  },
+  "run_step6_local.py": {
+    "mtime": 1791621336.89275,
+    "seen": 1791643309.6714084,
+    "ast_hash": "02a9dc639c5e2bc9987339f410e369d3",
+    "semantic_hash": ""
+  },
+  "step6_heart_deploy.py": {
+    "mtime": 1791621219.2829034,
+    "seen": 1791643309.6714191,
+    "ast_hash": "ae0f85a0f3aec931bcf582953c8fb1cf",
+    "semantic_hash": ""
+  },
+  "test_step6_deploy.py": {
+    "mtime": 1791621526.3958051,
+    "seen": 1791643309.6714265,
+    "ast_hash": "ada7a8f6fd5712db787ec3ddcb7b754b",
+    "semantic_hash": ""
+  },
+  "deploy/LINUXONE.md": {
+    "mtime": 1791642357.7009876,
+    "seen": 1791643309.6714451,
+    "ast_hash": "2fc90a4417543995717d53ff95262aa2",
+    "semantic_hash": ""
+  },
+  "deploy/docker-compose.mixed.yml": {
+    "mtime": 1791641442.666154,
+    "seen": 1791643309.6714468,
+    "ast_hash": "9051c94b258acba68923fb282a3777d3",
+    "semantic_hash": ""
+  },
+  "deploy/docker-compose.yml": {
+    "mtime": 1791640674.891744,
+    "seen": 1791643309.6714482,
+    "ast_hash": "d2660eff3ab741baf674a5829c915119",
     "semantic_hash": ""
   }
 }
