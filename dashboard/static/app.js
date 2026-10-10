@@ -14,14 +14,15 @@ const fmtBytes = (b) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFix
 const saveLS = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode: fine */ } };
 const loadLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
+const FONT = '"IBM Plex Sans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';   // vendored in static/vendor/fonts; same stack as styles.css
 function C() {
-  return { text: css('--text'), muted: css('--muted'), grid: css('--grid'), accent: css('--accent'), sky: css('--sky'),
-    good: css('--good'), warn: css('--warn'), bad: css('--bad'), panel: css('--panel'),
+  return { text: css('--text'), muted: css('--muted'), grid: css('--grid'), accent: css('--model'), lock: css('--lock'), lockFill: css('--lock-fill'), sky: css('--sky'),
+    good: css('--good'), warn: css('--warn'), bad: css('--bad'), panel: css('--surface'),
     hosp: [0, 1, 2, 3].map((i) => css('--h' + i)), fedavg: css('--fedavg'), fedprox: css('--fedprox') };
 }
 
 const registry = [];                                   // [{chart, style}] so a theme switch can recolour every chart
-function register(chart, style) { registry.push({ chart, style }); restyleOne({ chart, style }); return chart; }
+function register(chart, style) { registry.push({ chart, style }); fitWidth(chart, chart.width); restyleOne({ chart, style }); return chart; }
 function unregister(chart) { const i = registry.findIndex((r) => r.chart === chart); if (i >= 0) registry.splice(i, 1); chart.destroy(); }
 function restyleOne({ chart, style }) {
   const c = C();
@@ -38,27 +39,52 @@ function restyleOne({ chart, style }) {
 function restyleAll() {
   Chart.defaults.color = css('--muted');
   registry.forEach(restyleOne);
+  drawHero();
 }
 
 Chart.defaults.font.size = 15;
-Chart.defaults.font.family = 'system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+Chart.defaults.font.family = FONT;
 Chart.defaults.animation = false;   // colours are set right after construction; an animated first draw then fails (_fn is not a function). Updates are instant anyway
 Chart.defaults.plugins.tooltip.titleFont = { size: 15 };
 Chart.defaults.plugins.tooltip.bodyFont = { size: 14 };
 
 function baseOptions(extra = {}) {
   return Object.assign({ responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', intersect: false },
-    plugins: { legend: { display: false } } }, extra);
+    onResize: (ch, size) => fitWidth(ch, size.width), plugins: { legend: { display: false } } }, extra);
 }
-const axisTitle = (text) => ({ display: true, text, font: { size: 14, weight: '600' } });
+const axisTitle = (text, short) => ({ display: true, text, longText: text, shortText: short || text, font: { size: 14, weight: '600' } });
+
+// Narrow charts (phones): smaller markers and legend, short axis titles. Runs at register time and on every resize
+// (Chart.js updates after onResize, so no update() here).
+const NARROW = 450;
+function fitWidth(ch, w) {
+  const n = w < NARROW, o = ch.options;
+  if (o.plugins.legend && o.plugins.legend.display) { o.plugins.legend.labels.font = { size: n ? 12 : 15 }; o.plugins.legend.labels.padding = n ? 8 : 14; }
+  ch.data.datasets.forEach((d) => {
+    if (d.fullRadius === undefined) d.fullRadius = d.pointRadius;
+    if (typeof d.fullRadius === 'number' && d.fullRadius > 0) d.pointRadius = n ? Math.max(2, Math.round(d.fullRadius * 0.55)) : d.fullRadius;
+  });
+  for (const s of Object.values(o.scales || {})) {
+    if (s.title && s.title.shortText) s.title.text = n ? s.title.shortText : s.title.longText;
+    if (s.ticks) s.ticks.maxRotation = n ? 0 : 50;   // flat ticks on phones; autoSkip thins them instead (50 = Chart.js default)
+  }
+}
+
+// Canvas label on a small backdrop, so it stays readable over gridlines, bars and points.
+function backedText(ctx, text, x, y, color) {
+  const m = ctx.measureText(text), h = 16, pad = 4;
+  const left = ctx.textAlign === 'right' ? x - m.width : ctx.textAlign === 'center' ? x - m.width / 2 : x;
+  const top = ctx.textBaseline === 'bottom' ? y - h : ctx.textBaseline === 'top' ? y : y - h / 2;
+  ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = css('--surface'); ctx.fillRect(left - pad, top - 1, m.width + 2 * pad, h + 2); ctx.restore();
+  ctx.fillStyle = color; ctx.fillText(text, x, y);
+}
 
 // theme toggle: explicit choice wins, else the OS setting
-function effectiveTheme() { return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); }
+function effectiveTheme() { return document.documentElement.dataset.theme || 'light'; }   // light first, whatever the OS setting
 function syncThemeBtn() { $('themeBtn').textContent = effectiveTheme() === 'dark' ? 'Light theme' : 'Dark theme'; }
 function setTheme(t) { document.documentElement.dataset.theme = t; saveLS('theme', t); syncThemeBtn(); requestAnimationFrame(restyleAll); }
 { const saved = loadLS('theme'); if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved; }
 $('themeBtn').addEventListener('click', () => setTheme(effectiveTheme() === 'dark' ? 'light' : 'dark'));
-matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { syncThemeBtn(); requestAnimationFrame(restyleAll); });
 syncThemeBtn();
 
 async function getJSON(url, opts) {
@@ -146,7 +172,7 @@ function setPhase(p, ev) {
   } else {
     clearInterval(startTimer);
   }
-  if (p === 'preview') { ban.classList.add('info'); ban.innerHTML = '<b>Showing a recorded run</b> (the golden run saved in the repository), so every panel has real data before you start. Press <b>Start live run</b> to train for real, or choose <b>Replay</b> to watch this one again.'; }
+  if (p === 'preview') { ban.classList.add('info'); ban.innerHTML = '<b>Showing a recorded run</b> (the golden run), so every panel has real data. ' + (mode === 'live' ? '<b>Start live run</b> trains for real.' : '<b>Play replay</b> shows it round by round.'); }
   else if (p === 'running' || p === 'replay' || p === 'idle') ban.hidden = true;
   else if (p === 'done') {
     const last = S.rounds[S.rounds.length - 1];
@@ -171,6 +197,7 @@ function reflectParams(p) {
   if (p.secagg !== undefined) { $('secagg').checked = !!p.secagg; $('secaggOut').textContent = p.secagg ? 'On' : 'Off'; }
   if (p.rounds) $('rounds').value = p.rounds;
   if (p.seed !== undefined) $('seed').value = p.seed;
+  if (p.noise !== undefined && p.strategy) $('kSrc').textContent = `One run (DP noise ${Number(p.noise).toFixed(1)}, ${p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg'}, SecAgg ${p.secagg ? 'on' : 'off'}, seed ${p.seed}), not the 5-seed mean above.`;
 }
 
 // ============================================================ controls
@@ -180,6 +207,7 @@ document.querySelectorAll('input[name=mode]').forEach((r) => r.addEventListener(
   mode = document.querySelector('input[name=mode]:checked').value;
   $('liveCtl').hidden = mode !== 'live'; $('replayCtl').hidden = mode !== 'replay';
   $('startBtn').textContent = mode === 'live' ? 'Start live run' : 'Play replay';
+  if (S.phase === 'preview') setPhase('preview');
 }));
 
 $('ctl').addEventListener('submit', (e) => { e.preventDefault(); if (mode === 'live') startLive(); else startReplay(); });
@@ -263,6 +291,16 @@ async function startReplay() {
   step();
 }
 
+// "20261009-160619-a8eb10" + params -> "9 Oct 16:06: DP noise 1.0, FedProx, SecAgg on, 30 rounds, seed 57"
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function replayLabel(r) {
+  if (r.kind === 'replay') return r.name === 'golden_run' ? 'Golden run (saved recording)' : `${r.name} (saved recording)`;
+  const m = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(r.name), p = r.params;
+  const when = m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[4]}:${m[5]}` : r.name;
+  if (!p) return `${when} (your earlier run)`;
+  return `${when}: DP noise ${Number(p.noise).toFixed(1)}, ${p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg'}, SecAgg ${p.secagg ? 'on' : 'off'}, ${p.rounds} rounds, seed ${p.seed}`;
+}
+
 // instant, untimed version of the same events: the page opens already populated
 async function showPreview() {
   try {
@@ -285,7 +323,7 @@ const bandsPlugin = {
       const f = Math.max(from, lo), t = Math.min(to, hi); if (t <= f) return;
       const y1 = y.getPixelForValue(t), y2 = y.getPixelForValue(f);
       ctx.save(); ctx.fillStyle = col; ctx.fillRect(a.left, y1, a.right - a.left, y2 - y1);
-      ctx.fillStyle = c.text; ctx.globalAlpha = 0.85; ctx.font = '600 14px system-ui, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
+      ctx.fillStyle = c.text; ctx.globalAlpha = 0.85; ctx.font = `600 14px ${FONT}`; ctx.textBaseline = 'top'; ctx.textAlign = 'right';
       ctx.fillText(label, a.right - 8, y1 + 4); ctx.restore();
     };
     const alpha = (name, al) => { const h = c[name].replace('#', ''); const n = parseInt(h, 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${al / 100})`; };
@@ -301,8 +339,8 @@ const endLabelPlugin = {
       if (!d.endLabel || !chart.isDatasetVisible(i) || !d.data.length) return;
       const meta = chart.getDatasetMeta(i), pt = meta.data[meta.data.length - 1]; if (!pt) return;
       const { ctx, chartArea: a } = chart; ctx.save();
-      ctx.fillStyle = d.borderColor; ctx.font = '700 14px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-      ctx.fillText(d.endLabel, a.right - 6, pt.y - 6); ctx.restore();
+      ctx.font = `700 14px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+      backedText(ctx, chart.width < NARROW && d.endLabelShort ? d.endLabelShort : d.endLabel, a.right - 6, pt.y - 6, d.borderColor); ctx.restore();
     });
   },
 };
@@ -312,12 +350,12 @@ function makeAccChart() {
     type: 'line',
     data: { datasets: [
       { label: 'Global model (federated)', data: [], pointStyle: 'circle', pointRadius: 4, borderWidth: 3, tension: 0.15 },
-      { label: 'Centralized, same training budget', data: [], borderDash: [8, 6], borderWidth: 3, pointRadius: 0, endLabel: 'centralized, same training budget' },
+      { label: 'Centralized, same training budget', data: [], borderDash: [8, 6], borderWidth: 3, pointRadius: 0, endLabel: 'centralized, same training budget', endLabelShort: 'centralized' },
     ] },
     options: baseOptions({
       scales: {
-        x: { type: 'linear', min: 0, max: 15, title: axisTitle('Round (0 = untrained model)'), ticks: { maxTicksLimit: 16, stepSize: 1, font: { size: 14 } } },
-        y: { min: 0, max: 1, title: axisTitle('Accuracy on held-out patients'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
+        x: { type: 'linear', min: 0, max: 15, title: axisTitle('Round (0 = untrained model)', 'Round'), ticks: { maxTicksLimit: 16, stepSize: 1, font: { size: 14 } } },
+        y: { min: 0, max: 1, title: axisTitle('Accuracy on held-out patients', 'Accuracy'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
       },
       plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, font: { size: 15 }, boxWidth: 10, boxHeight: 10, padding: 14 } },
         tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${pct(c.parsed.y, 2)}` } } },
@@ -334,7 +372,7 @@ function makeEpsChart() {
     options: baseOptions({
       scales: {
         x: { type: 'linear', min: 0, max: 15, title: axisTitle('Round'), ticks: { maxTicksLimit: 16, stepSize: 1, font: { size: 14 } } },
-        y: { type: 'logarithmic', min: 1, max: 100, title: axisTitle('ε so far (log scale)'),
+        y: { type: 'logarithmic', min: 1, max: 100, title: axisTitle('ε so far (log scale)', 'ε (log)'),
           afterBuildTicks: (ax) => { ax.ticks = [0.1, 1, 10, 100, 1000].filter((v) => v >= ax.min && v <= ax.max).map((value) => ({ value })); },
           ticks: { callback: (v) => String(v), font: { size: 14 } } },
       },
@@ -376,7 +414,7 @@ function buildStrip() {
   const N = S.nRounds;
   S.hospitals.forEach((name, h) => {
     const row = document.createElement('div'); row.className = 'srow';
-    row.innerHTML = `<div class="sl"><i class="swatch ${MARKERS[h]}" style="background:var(--h${h})"></i><span>${esc(name)}</span></div>`;
+    row.innerHTML = `<div class="sl"><i class="swatch ${MARKERS[h]}" style="background:var(--h${h})"></i><span class="sl-long">${esc(name)}</span><span class="sl-short" aria-hidden="true">${esc(name.slice(0, 3))}</span></div>`;
     const cells = document.createElement('div'); cells.className = 'cells'; S.cells[h] = {};
     for (let r = 1; r <= N; r++) {
       const c = document.createElement('div'); c.className = 'cell' + (S.plainMode ? ' plain-mode' : ''); c.title = `${name}, round ${r}`;
@@ -396,7 +434,7 @@ function buildStrip() {
 function clearPanel1() {
   S.cells = {}; $('strip').innerHTML = ''; $('stripNow').textContent = ''; $('hospGrid').innerHTML = '';
   hospCharts.forEach(unregister); hospCharts = [];
-  ['kRound', 'kAcc', 'kCen', 'kEps', 'kBytes'].forEach((k) => { $(k).textContent = '–'; }); $('kBytesSub').textContent = '';
+  ['kRound', 'kAcc', 'kCen', 'kEps', 'kBytes'].forEach((k) => { $(k).textContent = '–'; }); $('kBytesSub').textContent = ''; $('prog').value = 0;
   $('epsNote').hidden = true;
   for (const ch of [accChart, epsChart]) if (ch) { ch.data.datasets.forEach((d) => { d.data = []; }); ch.update('none'); }
 }
@@ -408,6 +446,7 @@ function render() {
   // KPIs
   $('kRound').textContent = last ? `${last.round} / ${last.total_rounds}` : '–';
   $('kAcc').textContent = last ? pct(last.acc) : '–';
+  $('prog').value = last && last.total_rounds ? Math.round(last.round / last.total_rounds * 100) : 0;
   $('kCen').textContent = base ? pct(base.central_acc) : '–';
   const eps = last && last.epsilon ? last.epsilon.filter((v) => v !== null) : [];
   $('kEps').textContent = !last ? '–' : eps.length ? Math.max(...eps).toFixed(1) : '∞ (no DP)';
@@ -422,6 +461,8 @@ function render() {
     accChart.data.datasets[0].data = acc;
     accChart.data.datasets[1].data = base ? [{ x: 0, y: base.central_acc }, { x: N, y: base.central_acc }] : [];
     accChart.update('none');
+    $('accChart').setAttribute('aria-label', last ? `Global accuracy per round. After round ${last.round} of ${last.total_rounds}: ${pct(last.acc)}`
+      + (base ? `; centralized baseline ${pct(base.central_acc)}.` : '.') : 'Global accuracy per round. No rounds yet.');
   }
   // epsilon chart
   if (epsChart) {
@@ -440,6 +481,10 @@ function render() {
     if (base && !dp) { nt.hidden = false; nt.innerHTML = '<b>Noise is 0, so there is no differential privacy.</b> ε is unbounded (∞) and there is nothing to plot. Masking (SecAgg+) still hides single updates from the server.'; }
     else if (rs.length && !hasEps && base) { nt.hidden = false; nt.textContent = 'No ε reported for this run.'; } else nt.hidden = true;
     epsChart.update('none');
+    const le = last && last.epsilon ? last.epsilon : null;
+    $('epsChart').setAttribute('aria-label', le && le.some((v) => v !== null)
+      ? `Privacy budget ε per hospital after round ${last.round}: ` + S.hospitals.map((n, h) => `${n} ${le[h] === null ? 'none' : le[h].toFixed(1)}`).join(', ') + '.'
+      : 'Privacy budget ε per hospital. No ε values yet.');
   }
   // hospital small multiples
   hospCharts.forEach((ch, h) => {
@@ -449,6 +494,8 @@ function render() {
     const mj = S.majority && S.majority[S.hospitals[h]] ? S.majority[S.hospitals[h]].majority_acc : null;
     ch.data.datasets[2].data = mj === null ? [] : [{ x: 0, y: mj }, { x: Math.max(N, 1), y: mj }];
     ch.update('none');
+    const cv = $('hc' + h);
+    if (cv && base) cv.setAttribute('aria-label', `Accuracy of ${S.hospitals[h]}: trained alone ${pct(base.local_per_hospital_acc[h])}` + (last ? `, shared model ${pct(last.per_hospital_acc[h])} after round ${last.round}.` : '.'));
     const el = $('hs' + h);
     if (el && base) el.textContent = (last ? `alone ${pct(base.local_per_hospital_acc[h])} → shared ${pct(last.per_hospital_acc[h])}` : `alone ${pct(base.local_per_hospital_acc[h])}`)
       + (mj === null ? '' : ` · guess-common ${pct(mj)}`);
@@ -494,6 +541,7 @@ function clearInspect() {
   inspectSeq++; lastInspect = null;
   for (const ch of [plainQChart, maskedChart, rawChart, aggChart]) if (ch) { ch.data.datasets[0].data = []; ch.update('none'); }
   $('seesSource').textContent = 'Waiting for the capture of round 1 …'; $('badge').className = 'badge'; $('badge').textContent = ''; $('seesStats').textContent = '';
+  renderHeroStrip(null);
 }
 function seesSourceHtml() {
   if (!lastInspect) return '';
@@ -506,8 +554,8 @@ const needlePlugin = { id: 'expected', afterDatasetsDraw(chart, _a, opts) {
   if (!opts || !opts.value) return;
   const { ctx, chartArea: a, scales: { y } } = chart, py = y.getPixelForValue(opts.value);
   ctx.save(); ctx.strokeStyle = opts.color; ctx.setLineDash([8, 6]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
-  ctx.setLineDash([]); ctx.fillStyle = opts.color; ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-  ctx.fillText(opts.label, a.right - 6, py - 4); ctx.restore();
+  ctx.setLineDash([]); ctx.font = `600 13px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  backedText(ctx, opts.label, a.right - 6, py - 4, opts.color); ctx.restore();
 } };
 
 function sharedAxisChart(canvas, showTicks, ytitle) {
@@ -517,7 +565,7 @@ function sharedAxisChart(canvas, showTicks, ytitle) {
       interaction: { mode: 'nearest', intersect: true },
       layout: { padding: { right: 14 } },
       scales: {
-        x: { type: 'linear', offset: false, min: 0, max: 4294967296, title: showTicks ? axisTitle('Value on the number line 0 … 2³² (modular range, 4,294,967,296)') : { display: false },
+        x: { type: 'linear', offset: false, min: 0, max: 4294967296, title: showTicks ? axisTitle('Value on the number line 0 … 2³² (modular range, 4,294,967,296)', 'Number line 0 … 2³²') : { display: false },
           ticks: { display: showTicks, stepSize: 1073741824, font: { size: 14 },
             callback: (v) => ({ 0: '0', 1073741824: '¼', 2147483648: '½', 3221225472: '¾', 4294967296: '2³²' }[v] ?? '') } },
         y: { beginAtZero: true, title: axisTitle(ytitle), afterFit: (s) => { s.width = 64; }, ticks: { font: { size: 13 }, precision: 0 } },
@@ -537,16 +585,16 @@ function histValues(vals, lo, hi, bins) {
 function makeInspectCharts() {
   plainQChart = register(sharedAxisChart($('plainQChart'), false, 'values'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.bad; d.borderColor = c.bad; });
   maskedChart = register(sharedAxisChart($('maskedChart'), true, 'values per bin'), (ch, c) => {
-    const d = ch.data.datasets[0]; d.backgroundColor = c.accent; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
-  const hist = (canvas, xt) => new Chart(canvas, {
+    const d = ch.data.datasets[0]; d.backgroundColor = c.lockFill; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
+  const hist = (canvas, xt, xs) => new Chart(canvas, {
     type: 'bar', data: { datasets: [{ data: [], borderWidth: 1 }] },
     options: baseOptions({ interaction: { mode: 'nearest', intersect: true }, layout: { padding: { right: 14 } },
-      scales: { x: { type: 'linear', offset: false, title: axisTitle(xt), ticks: { font: { size: 14 }, callback: (v) => Number(v).toFixed(2) } },
+      scales: { x: { type: 'linear', offset: false, title: axisTitle(xt, xs), ticks: { font: { size: 14 }, callback: (v) => Number(v).toFixed(2) } },
         y: { beginAtZero: true, title: axisTitle('values'), afterFit: (s) => { s.width = 64; }, ticks: { precision: 0, font: { size: 13 } } } },
       plugins: { legend: { display: false } } }),
   });
-  rawChart = register(hist($('rawChart'), 'weight value (one hospital, before protection)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.hosp[0]; d.borderColor = c.panel; });
-  aggChart = register(hist($('aggChart'), 'weight value (the combined model)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.sky; d.borderColor = c.panel; });
+  rawChart = register(hist($('rawChart'), 'weight value (one hospital, before protection)', 'weight value'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.hosp[0]; d.borderColor = c.panel; });
+  aggChart = register(hist($('aggChart'), 'weight value (the combined model)', 'weight value'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.accent; d.borderColor = c.panel; });
 }
 
 async function loadInspect(name, label) {
@@ -562,6 +610,7 @@ function renderInspect(d, label) {
   if (!d.ready) { $('seesSource').textContent = 'Waiting for the capture of round 1 …'; return; }
   const info = d.info, mod = info.mod_range;
   lastInspect = { d, label }; $('seesSource').innerHTML = seesSourceHtml();
+  renderHeroStrip(d);
   const n = Number(info.plaintext_arrays_out), arrays = info.masked_shapes ? info.masked_shapes.length - 1 : null;
   const badge = $('badge'); badge.className = 'badge' + (n > 0 ? ' bad' : '');
   badge.innerHTML = `Plaintext arrays leaving the hospital: <b>${n}</b><small>${info.secagg ? 'SecAgg+ on: only the masked vector is sent.' : 'SecAgg+ was off in this run: the plain weight arrays leave the hospital.'}${arrays && info.secagg ? ` With SecAgg off this counter shows ${arrays} (one per weight array).` : ''}</small>`;
@@ -599,6 +648,91 @@ function renderInspect(d, label) {
       ch.options.scales.x.min = -lim; ch.options.scales.x.max = lim; ch.update('none');
     }
   }
+}
+
+// ============================================================ hero cipher strip
+// 273 ticks, one per model value, placed on the number line 0 ... 2^32. Unmasked they sit in one spot; masked they fill the range.
+// Plain positions are the same close approximation as the "without masking" chart: the raw weights mapped linearly into quantized_plain's [min, max].
+const hero = { plain: null, masked: null, t0: 0, raf: 0, progress: 1 };
+const frac = (i) => { const x = Math.sin(i * 12.9898 + 4.1414) * 43758.5453; return x - Math.floor(x); };   // fixed pseudo-random tick heights
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+function renderHeroStrip(d) {
+  const empty = $('heroEmpty'), cv = $('heroStrip');
+  hero.plain = hero.masked = null; cancelAnimationFrame(hero.raf);
+  const q = d && d.ready && d.quantized_plain, w = d && d.plain && d.plain.values;
+  $('heroReplay').hidden = true;
+  if (!q || !w || !w.length) {
+    empty.hidden = false; cv.style.visibility = 'hidden';
+    $('heroState').textContent = 'Without masking'; $('heroState').className = '';
+    return;
+  }
+  empty.hidden = true; cv.style.visibility = 'visible';
+  const mod = d.info.mod_range, lo = Math.min(...w), span = (Math.max(...w) - lo) || 1;
+  hero.plain = w.map((v) => (q.min + ((v - lo) / span) * (q.max - q.min)) / mod);
+  hero.masked = d.masked ? d.masked.values.slice(1).map((v) => v / mod) : null;
+  cv.setAttribute('aria-label', hero.masked
+    ? `Cipher strip: the hospital's ${w.length} model values. Without masking they all sit within ${((q.max - q.min) / mod * 100).toFixed(3)} percent of the number line; with masking they are spread across the whole range.`
+    : `Cipher strip: the hospital's ${w.length} model values, all within ${((q.max - q.min) / mod * 100).toFixed(3)} percent of the number line. SecAgg+ was off, so nothing is masked.`);
+  if (!hero.masked) { hero.progress = 0; drawHero(); return; }
+  $('heroReplay').hidden = false;
+  if (REDUCED) { hero.progress = 1; drawHero(); syncHeroBtn(); return; }
+  playHero();
+}
+function playHero() {
+  cancelAnimationFrame(hero.raf);
+  hero.t0 = performance.now() + 700;   // hold the unmasked state for 0.7 s, then mask once
+  const tick = (now) => { hero.progress = Math.min(1, Math.max(0, (now - hero.t0) / 1800)); drawHero(); if (hero.progress < 1) hero.raf = requestAnimationFrame(tick); };
+  hero.progress = 0; drawHero(); hero.raf = requestAnimationFrame(tick);
+}
+// reduced motion: the button flips between the two states instead of animating
+function syncHeroBtn() { if (REDUCED) $('heroReplay').textContent = hero.progress >= 1 ? 'Show without masking' : 'Show with masking'; }
+$('heroReplay').addEventListener('click', () => {
+  if (!hero.masked) return;
+  if (REDUCED) { hero.progress = hero.progress >= 1 ? 0 : 1; drawHero(); syncHeroBtn(); } else playHero();
+});
+
+function drawHero() {
+  const cv = $('heroStrip'); if (!cv || !hero.plain) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext('2d'), c = C(), padX = 6, axisH = 22, n = hero.plain.length, bw = Math.max(2, Math.min(4, W / n * 0.6));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const top = 6, bottom = H - axisH, plotW = W - 2 * padX;
+  ctx.fillStyle = c.muted; ctx.font = `400 12px ${FONT}`; ctx.textBaseline = 'top';
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(padX, bottom + 0.5); ctx.lineTo(W - padX, bottom + 0.5); ctx.stroke();
+  ctx.textAlign = 'left'; ctx.fillText('0', padX, bottom + 6);
+  ctx.textAlign = 'center'; ctx.fillText('½', padX + plotW / 2, bottom + 6);
+  ctx.textAlign = 'right'; ctx.fillText('2³²', W - padX, bottom + 6);
+  const p = hero.progress, st = 0.45;                                   // st: share of the morph used to stagger the ticks
+  for (let i = 0; i < n; i++) {
+    const lt = hero.masked ? ease(Math.min(1, Math.max(0, (p - (i / n) * st) / (1 - st)))) : 0;
+    const x = padX + plotW * (hero.plain[i] + ((hero.masked ? hero.masked[i] : hero.plain[i]) - hero.plain[i]) * lt);
+    const h = (0.3 + 0.7 * frac(i)) * (bottom - top);
+    ctx.globalAlpha = 0.92; ctx.fillStyle = lt > 0.5 ? c.lockFill : c.bad;
+    ctx.fillRect(x - bw / 2, bottom - h, bw, h);
+  }
+  ctx.globalAlpha = 1;
+  const masked = p >= 1 && hero.masked, label = masked ? 'With SecAgg+ masking' : 'Without masking';
+  if ($('heroState').textContent !== label) $('heroState').textContent = label;
+  $('heroState').className = masked ? 'locked' : '';
+  $('heroCap').textContent = masked
+    ? 'The same 273 values as the server actually receives them: spread across the whole range, indistinguishable from random numbers.'
+    : "One hospital's 273 update values, as positions on the number line 0 to 2³². Unmasked, they sit in one spot, so the server could read each one.";
+}
+new ResizeObserver(() => drawHero()).observe($('heroStrip'));
+
+// ============================================================ nav scrollspy
+{
+  const links = [...document.querySelectorAll('#mainNav a')], secs = links.map((a) => document.querySelector(a.getAttribute('href')));
+  const setCur = (id) => links.forEach((a) => { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+  const vis = new Map();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => vis.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
+    let best = null, bestR = 0; vis.forEach((r, id) => { if (r > bestR) { best = id; bestR = r; } });
+    setCur(best);
+  }, { rootMargin: '-80px 0px -45% 0px', threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] });
+  secs.forEach((x) => x && io.observe(x));
 }
 
 // ============================================================ panel 3: privacy vs accuracy
@@ -647,11 +781,11 @@ function buildTrChart() {
       interaction: { mode: 'nearest', intersect: true },
       layout: { padding: { right: 12, top: 8 } },
       scales: {
-        x: { type: 'logarithmic', min: 8, max: 1500, title: axisTitle('Privacy budget ε of the worst-off hospital: left = stronger privacy'),
+        x: { type: 'logarithmic', min: 8, max: 1500, title: axisTitle('Privacy budget ε of the worst-off hospital: left = stronger privacy', 'Worst-case ε (left = more private)'),
           afterBuildTicks: (ax) => { ax.ticks = ticksAt.map((value) => ({ value })); },
           ticks: { font: { size: 14 }, callback: (v) => (v === NODP_X ? ['no DP', 'noise 0'] : [`ε ${v < 100 ? v.toFixed(1) : Math.round(v)}`, `noise ${noiseOf(v)}`]) } },
         y: { min: Math.floor((Math.min(...ys) - 0.01) * 50) / 50, max: Math.ceil((Math.max(...ys) + 0.01) * 50) / 50,
-          title: axisTitle('Accuracy (mean of 5 seeds, ±1 std)'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
+          title: axisTitle('Accuracy (mean of 5 seeds, ±1 std)', 'Accuracy'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
       },
       plugins: { legend: { display: false }, tooltip: { callbacks: {
         title: () => '',
@@ -681,13 +815,14 @@ function renderSweeps(data) {
   const g = m ? gs.find((x) => x.source === m[1] && String(x.secagg) === m[2] && x.strategy === m[3] && String(x.noise) === String(Number(m[4]))) : null;
   if (h.gap_points === null) { $('hlMain').textContent = 'No sweep results found.'; $('trHeadline').textContent = 'No sweep results found.'; }
   else {
-    const main = `Within ${h.gap_points.toFixed(1)} accuracy points (${h.relative_gap_pct.toFixed(1)}%) of a centralized model, at ε ≈ ${h.epsilon.toFixed(1)}, without sharing patient data.`;
+    const main = `Within ${h.gap_points.toFixed(1)} accuracy points (${h.relative_gap_pct.toFixed(1)}%) of a centralized model, at ε ≈ ${h.epsilon.toFixed(1)}, without sharing patient data.`;
     $('hlMain').textContent = main;
     const cfg = g ? `${g.strategy === 'fedavg' ? 'FedAvg' : 'FedProx'}, DP noise ${g.noise}, SecAgg ${g.secagg ? 'on' : 'off'}` : h.source;
     const accs = g ? ` Federated ${pct(g.mean_fed_acc, 2)} vs centralized ${pct(g.mean_central_acc, 2)} (mean of ${g.n_seeds} seeds).` : '';
     const sp = g ? g.std_fed_acc * 100 : null;
     const spread = sp === null ? '' : h.gap_points <= sp ? ` The gap is within the seed-to-seed spread of ±${sp.toFixed(1)} points, so it is not a proven difference.` : ` For scale: results move by ±${sp.toFixed(1)} points between seeds.`;
-    $('hlSub').textContent = `Most private configuration we ran (${cfg}), not the most accurate.${accs}${spread}`;
+    const band = h.epsilon > 10 ? ' ε above 10 is in the weak band of the ε chart: the hospitals are small, so the privacy cost shows up in ε.' : '';
+    $('hlSub').textContent = `Most private configuration we ran (${cfg}), not the most accurate.${accs}${spread}${band}`;
     $('trHeadline').innerHTML = `<b>${esc(main)}</b><small>This is the most private configuration (lowest ε), not the best-looking one. Computed from <code>${esc(h.source)}</code> by dashboard/sweeps.py.${esc(accs)}${esc(spread)}</small>`;
     if (g) {
       const spread = g.std_fed_acc * 100;
@@ -709,6 +844,8 @@ function renderSweeps(data) {
 async function boot() {
   makeAccChart(); makeEpsChart(); makeInspectCharts();
   restyleAll();
+  if (document.fonts) document.fonts.load(`400 15px ${FONT}`).then(() => document.fonts.ready).then(restyleAll).catch(() => {});   // canvas text needs Plex loaded before it is drawn
+  renderHeroStrip(null);
   try { const g = (await getJSON('/api/replays/golden_run')).events.find((e) => e.type === 'baseline'); if (g) { DEFAULT_NAMES = g.hospitals; S.hospitals = g.hospitals.slice(); } } catch (e) { /* keep placeholders */ }
   const jobs = [];
   jobs.push(getJSON('/api/sweeps').then(renderSweeps).catch((e) => {
@@ -716,7 +853,7 @@ async function boot() {
   }));
   jobs.push(getJSON('/api/replays').then((list) => {
     const sel = $('replaySel'); sel.innerHTML = '';
-    list.forEach((r) => { const o = document.createElement('option'); o.value = r.name; o.textContent = r.kind === 'replay' ? `${r.name} (saved recording)` : `${r.name} (your earlier run)`; sel.appendChild(o); });
+    list.forEach((r) => { const o = document.createElement('option'); o.value = r.name; o.textContent = replayLabel(r); sel.appendChild(o); });
   }).catch(() => {}));
   let attached = false;
   try { attached = await attachCurrent(); } catch (e) { /* no run to attach */ }
