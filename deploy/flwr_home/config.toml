@@ -1,0 +1,7 @@
+# Flower CLI config used INSIDE the dashboard container (FLWR_HOME=/flwr_home): `flwr run /app deploy` talks to the SuperLink container.
+[superlink]
+default = "deploy"
+
+[superlink.deploy]
+address = "superlink:9093"
+insecure = true

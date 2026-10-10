@@ -1,0 +1,91 @@
+# Step 6: the federation as containers. Start:  docker compose -f deploy/docker-compose.yml up --build
+# Then open http://127.0.0.1:8000 (the dashboard). Needs data/heart_disease/processed.{cleveland,hungarian,switzerland,va}.data in the repo
+# (not in git; see CLAUDE.md for the download URL).
+#
+# What each container can see of the data:
+#   supernode-N : ONLY its own hospital file (read-only bind mount at /data). This is the point of the deployment.
+#   superlink   : all four files. The ServerApp it runs computes the NON-private baselines (centralized / local-only) and the pooled test
+#                 score for the dashboard. Evaluation only; a production SuperLink would not hold patient data.
+#   dashboard   : all four files (read-only) only for the per-hospital majority-class reference line in the charts.
+# /runs is a volume shared by all containers: the demo's inspector channel (events, plain/masked vectors). A real hospital would not share it.
+x-image: &image
+  image: zero-exposure-fl:local
+  init: true   # a tiny init as PID 1 reaps the finished/killed ServerApp and ClientApp processes (no zombies after Stop)
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile
+
+x-supernode-env: &supernode-env
+  ALLOW_MISSING_DATA: "1"   # step3_heart_dp.py: tolerate the 3 other hospitals' files being absent
+  DATA_DIR: /data
+
+services:
+  superlink:
+    <<: *image
+    command: >
+      flower-superlink --insecure --disable-runtime-dependency-installation
+      --host 0.0.0.0 --port 9093 --fleet-api-address 0.0.0.0:9092
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - ../data/heart_disease:/data:ro
+      - runs:/runs
+    restart: unless-stopped
+
+  supernode-0:
+    <<: *image
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=0 num-partitions=4"
+    environment: *supernode-env
+    volumes:
+      - ../data/heart_disease/processed.cleveland.data:/data/processed.cleveland.data:ro
+      - runs:/runs
+    depends_on: [superlink]
+    restart: unless-stopped
+
+  supernode-1:
+    <<: *image
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=1 num-partitions=4"
+    environment: *supernode-env
+    volumes:
+      - ../data/heart_disease/processed.hungarian.data:/data/processed.hungarian.data:ro
+      - runs:/runs
+    depends_on: [superlink]
+    restart: unless-stopped
+
+  supernode-2:
+    <<: *image
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=2 num-partitions=4"
+    environment: *supernode-env
+    volumes:
+      - ../data/heart_disease/processed.switzerland.data:/data/processed.switzerland.data:ro
+      - runs:/runs
+    depends_on: [superlink]
+    restart: unless-stopped
+
+  supernode-3:
+    <<: *image
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=3 num-partitions=4"
+    environment: *supernode-env
+    volumes:
+      - ../data/heart_disease/processed.va.data:/data/processed.va.data:ro
+      - runs:/runs
+    depends_on: [superlink]
+    restart: unless-stopped
+
+  dashboard:
+    <<: *image
+    command: python -m dashboard.server
+    environment:
+      HOST: 0.0.0.0
+      MODE: deploy
+      RUNS_DIR: /runs
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT:-8000}:8000"   # loopback only; DASHBOARD_PORT=8001 if 8000 is taken: the dashboard has no login (see dashboard/server.py)
+    volumes:
+      - ../data/heart_disease:/app/data/heart_disease:ro
+      - runs:/runs
+    depends_on: [superlink]
+    restart: unless-stopped
+
+volumes:
+  runs:

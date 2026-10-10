@@ -4,6 +4,11 @@ Start:  .venv\\Scripts\\python.exe -m dashboard.server        (HOST=127.0.0.1 PO
 
 Training code is never imported here: the child process gets EVENTS_FILE / INSPECT_DIR (see step4_heart_secagg.py) and this
 server tails those files. One run at a time. Stop, crash and server shutdown kill the child's whole process tree (Ray workers too).
+
+MODE=sim (default): the child is step4_heart_secagg.py (Flower simulation on Ray, one process).
+MODE=deploy (step 6, used by deploy/docker-compose.yml): the child is `flwr run --stream` against an already running SuperLink with
+4 SuperNodes (step6_heart_deploy.py). The same files are written, to RUNS_DIR (a volume shared with the other containers).
+Stop = `flwr stop <run id>` + kill the CLI. A deploy run counts as done only if the ServerApp wrote its final `done` event.
 """
 import asyncio
 import importlib
@@ -31,7 +36,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 ROOT = Path(__file__).resolve().parent.parent
 DASH = Path(__file__).resolve().parent
-RUNS_DIR = DASH / "runs"
+MODE = os.environ.get("MODE", "sim")
+assert MODE in ("sim", "deploy"), "MODE must be sim or deploy"
+RUNS_DIR = Path(os.environ["RUNS_DIR"]) if os.environ.get("RUNS_DIR") else DASH / "runs"
+FLWR_CONNECTION = os.environ.get("FLWR_CONNECTION", "deploy")  # name of the SuperLink connection in $FLWR_HOME/config.toml
+FLWR_RUN_ID_RE = re.compile(r"started run (\d+)")
 REPLAYS_DIR = DASH / "replays"
 STATIC_DIR = DASH / "static"
 TRAIN_SCRIPT = ROOT / "step4_heart_secagg.py"
@@ -71,6 +80,53 @@ def kill_tree(proc):
         pass
 
 
+# ---------------------------------------------------------------- deploy mode helpers
+def flwr_exe():
+    return str(Path(sys.executable).parent / ("flwr.exe" if sys.platform == "win32" else "flwr"))
+
+
+def deploy_run_config(run, params):
+    """The run's parameters as a `flwr run --run-config` string (keys of pyproject.toml). Paths are the same in every container (/runs)."""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from run_step6_local import run_config_arg  # lazy: sim mode must not need it
+    return run_config_arg({
+        "rounds": int(params["rounds"]), "noise": float(params["noise"]), "strategy": params["strategy"], "mu": 0.1,
+        "seed": int(params["seed"]), "secagg": 1 if params["secagg"] else 0,
+        "events-file": str(run.dir / "events.jsonl"), "inspect-dir": str(run.dir / "insp"), "inspect-round": INSPECT_ROUND,
+    })
+
+
+def flwr_run_id(run, wait=10.0):
+    """Flower's id of the run, read from the CLI's output ('Successfully started run N'). Waits briefly: the CLI prints it after submitting."""
+    end = time.time() + wait
+    while run.flwr_run_id is None:
+        try:
+            m = FLWR_RUN_ID_RE.search((run.dir / "stdout.log").read_text(encoding="utf-8", errors="replace"))
+        except FileNotFoundError:
+            m = None
+        if m:
+            run.flwr_run_id = m.group(1)
+        elif time.time() > end or run.proc.poll() is not None:
+            break
+        else:
+            time.sleep(0.2)
+    return run.flwr_run_id
+
+
+def stop_flwr_run(run):
+    """Deploy mode: ask the SuperLink to stop the run (killing the CLI alone would leave the ServerApp and ClientApps training)."""
+    if MODE != "deploy":
+        return
+    rid = flwr_run_id(run)
+    if rid is None:
+        return
+    try:
+        subprocess.run([flwr_exe(), "stop", rid, FLWR_CONNECTION], capture_output=True, timeout=60, env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    except subprocess.TimeoutExpired:
+        pass
+
+
 # ---------------------------------------------------------------- run manager
 class Run:
     def __init__(self, params):
@@ -83,6 +139,7 @@ class Run:
         self.started = time.time()
         self.finished = None
         self.proc = None
+        self.flwr_run_id = None  # deploy mode: Flower's own id of the run, needed for `flwr stop`
 
     def meta(self):
         return {"id": self.id, "params": self.params, "status": self.status, "exit_code": self.exit_code,
@@ -101,19 +158,22 @@ class RunManager:
             run = Run(params)
             run.dir.mkdir(parents=True, exist_ok=False)
             (run.dir / "insp").mkdir()
-            env = {
-                **os.environ,
-                "SECAGG": "1" if params["secagg"] else "0", "STRATEGY": params["strategy"], "MU": "0.1",
-                "NOISE": repr(float(params["noise"])), "NUM_ROUNDS": str(params["rounds"]), "SEED": str(params["seed"]),
-                "EVENTS_FILE": str(run.dir / "events.jsonl"), "INSPECT_DIR": str(run.dir / "insp"),
-                "INSPECT_ROUND": str(INSPECT_ROUND), "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1",
-            }
+            env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
+            if MODE == "deploy":
+                cmd = [flwr_exe(), "run", str(ROOT), FLWR_CONNECTION, "--stream", "--run-config", deploy_run_config(run, params)]
+            else:
+                env.update({
+                    "SECAGG": "1" if params["secagg"] else "0", "STRATEGY": params["strategy"], "MU": "0.1",
+                    "NOISE": repr(float(params["noise"])), "NUM_ROUNDS": str(params["rounds"]), "SEED": str(params["seed"]),
+                    "EVENTS_FILE": str(run.dir / "events.jsonl"), "INSPECT_DIR": str(run.dir / "insp"),
+                    "INSPECT_ROUND": str(INSPECT_ROUND),
+                })
+                cmd = [sys.executable, str(TRAIN_SCRIPT)]
             kw = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if sys.platform == "win32" else {"start_new_session": True}
             out = open(run.dir / "stdout.log", "wb")
             err = open(run.dir / "stderr.log", "wb")
             try:
-                run.proc = subprocess.Popen([sys.executable, str(TRAIN_SCRIPT)], cwd=str(ROOT), env=env,
-                                            stdin=subprocess.DEVNULL, stdout=out, stderr=err, **kw)
+                run.proc = subprocess.Popen(cmd, cwd=str(ROOT), env=env, stdin=subprocess.DEVNULL, stdout=out, stderr=err, **kw)
             finally:
                 out.close()
                 err.close()
@@ -127,7 +187,11 @@ class RunManager:
         with self.lock:
             run.exit_code = code
             run.finished = time.time()
-            run.status = "stopped" if run.stop_requested and code != 0 else ("done" if code == 0 else "error")
+            if MODE == "deploy":  # the CLI's exit code says little: success = the ServerApp itself reported that it finished
+                ok = any(e.get("type") == "done" for e in read_jsonl(run.dir / "events.jsonl"))
+                run.status = "stopped" if run.stop_requested else ("done" if ok else "error")
+            else:
+                run.status = "stopped" if run.stop_requested and code != 0 else ("done" if code == 0 else "error")
             self._write_meta(run)
         if sys.platform != "win32":
             kill_tree(run.proc)  # POSIX: the group may still hold Ray daemons. Windows: taskkill /T needs a live parent, so it cannot help here
@@ -142,6 +206,7 @@ class RunManager:
             if run is None or run.id != run_id or run.status != "running":
                 return False
             run.stop_requested = True
+        stop_flwr_run(run)
         kill_tree(run.proc)
         for _ in range(50):  # the watcher thread records the final status; wait for it so callers see "stopped"
             if run.status != "running":
@@ -153,6 +218,7 @@ class RunManager:
         run = self.current
         if run is not None and run.status == "running":
             run.stop_requested = True
+            stop_flwr_run(run)
             kill_tree(run.proc)
             with self.lock:
                 if run.status == "running":  # the watcher thread may not have run yet
@@ -219,10 +285,14 @@ def stage_files(insp_dir):
 
 
 def stderr_tail(run_dir, n=25, max_chars=3000):
-    try:
-        text = (run_dir / "stderr.log").read_text(encoding="utf-8", errors="replace")
-    except FileNotFoundError:
-        return ""
+    text = ""
+    for name in ("stderr.log", "stdout.log") if MODE == "deploy" else ("stderr.log",):  # deploy: the CLI's streamed ServerApp log is stdout
+        try:
+            text = (run_dir / name).read_text(encoding="utf-8", errors="replace")
+        except FileNotFoundError:
+            continue
+        if text.strip():
+            break
     return "\n".join(text.splitlines()[-n:])[-max_chars:]
 
 
