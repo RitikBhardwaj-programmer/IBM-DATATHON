@@ -50,4 +50,12 @@ q, spe = s3.sample_rate_and_steps(n)
 assert abs(live - mine) < 1e-9, (live, mine)
 assert engine.accountant.history[-1][1] == q and engine.accountant.history[-1][2] == s3.LOCAL_EPOCHS * spe == s3.LOCAL_EPOCHS * n_steps
 print(f"accountant cross-check OK: live eps {live:.6f} == formula {mine:.6f} (q={q:.4f}, steps={s3.LOCAL_EPOCHS * spe})")
+
+# 5. byte order: parameters that arrive in the other endianness (np.save keeps it; found in the mixed amd64 + s390x run) load unchanged
+ref = s3.Net()
+for order in (">", "<"):
+    other = s3.Net()
+    s3.set_parameters(other, [a.astype(a.dtype.newbyteorder(order)) for a in s3.get_parameters(ref)])
+    assert all(torch.equal(a, b) for a, b in zip(ref.state_dict().values(), other.state_dict().values())), order
+print("byte-order check OK: big- and little-endian parameter arrays both load to identical weights")
 print("ALL OK")

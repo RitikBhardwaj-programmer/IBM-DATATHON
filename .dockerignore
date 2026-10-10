@@ -1,0 +1,12 @@
+# Allow-list: the image gets only the code it runs. Never the hospital data (it is mounted per container), the venv, tests or notes.
+*
+!step3_heart_dp.py
+!step4_heart_secagg.py
+!step6_heart_deploy.py
+!run_step6_local.py
+!pyproject.toml
+!dashboard/
+!results/
+!deploy/flwr_home/
+dashboard/runs/
+**/__pycache__/

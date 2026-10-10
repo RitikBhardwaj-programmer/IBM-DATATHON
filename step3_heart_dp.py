@@ -50,7 +50,10 @@ LR = 0.05
 
 HOSPITALS = ["cleveland", "hungarian", "switzerland", "va"]
 NUM_CLIENTS = len(HOSPITALS)
-DATA_DIR = Path(__file__).parent / "data" / "heart_disease"
+DATA_DIR = Path(os.environ.get("DATA_DIR", Path(__file__).parent / "data" / "heart_disease"))
+# Deployment mode (step 6): a SuperNode container holds ONLY its own hospital's file. ALLOW_MISSING_DATA=1 lets such a process
+# import this module; the other hospitals' entries in DATA are then None (and are never touched by that hospital's client).
+ALLOW_MISSING_DATA = os.environ.get("ALLOW_MISSING_DATA") == "1"
 COLS = ["age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "num"]
 NUMERIC = ["age", "sex", "fbs", "exang", "trestbps", "chol", "thalach", "oldpeak"]
 BATCH = 16
@@ -81,11 +84,17 @@ def load_hospital(name):
     return {"X_tr": X[tr], "y_tr": y[tr], "X_te": X[te], "y_te": y[te]}
 
 
-DATA = [load_hospital(h) for h in HOSPITALS]
-N_FEATURES = DATA[0]["X_tr"].shape[1]
+def load_all_hospitals():
+    """One dict per hospital; None for a missing file only when ALLOW_MISSING_DATA=1 (otherwise a missing file is an error)."""
+    return [load_hospital(h) if (not ALLOW_MISSING_DATA or (DATA_DIR / f"processed.{h}.data").exists()) else None for h in HOSPITALS]
+
+
+DATA = load_all_hospitals()
+N_FEATURES = next(d for d in DATA if d is not None)["X_tr"].shape[1]
 for h, d in zip(HOSPITALS, DATA):
-    print(f"{h:12s} train {len(d['y_tr']):3d} (disease {d['y_tr'].mean():.2f}) | test {len(d['y_te']):3d} (disease {d['y_te'].mean():.2f})")
-assert all(DELTA < 1 / len(d["y_tr"]) for d in DATA), "DELTA must be smaller than 1/n_train for every hospital"
+    if d is not None:
+        print(f"{h:12s} train {len(d['y_tr']):3d} (disease {d['y_tr'].mean():.2f}) | test {len(d['y_te']):3d} (disease {d['y_te'].mean():.2f})")
+assert all(DELTA < 1 / len(d["y_tr"]) for d in DATA if d is not None), "DELTA must be smaller than 1/n_train for every hospital"
 
 
 # ---------------------------------------------------------------- model + PyTorch helpers
@@ -104,7 +113,10 @@ def get_parameters(model):
 
 def set_parameters(model, params):
     keys = model.state_dict().keys()
-    model.load_state_dict({k: torch.tensor(v) for k, v in zip(keys, params)}, strict=True)
+    # np.save (Flower's wire format) records the byte order, so arrays from a machine of the OTHER endianness arrive non-native
+    # (e.g. little-endian server -> big-endian s390x client) and torch refuses them. Native order is a no-op on the same architecture.
+    native = [np.asarray(v).astype(np.asarray(v).dtype.newbyteorder("="), copy=False) for v in params]
+    model.load_state_dict({k: torch.tensor(v) for k, v in zip(keys, native)}, strict=True)
 
 
 def make_loader(X, y):
