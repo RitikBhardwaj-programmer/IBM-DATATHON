@@ -1,0 +1,9 @@
+# Rehearsal only: a MIXED-architecture federation. SuperLink and 3 SuperNodes stay amd64; supernode-1 (hungarian) runs as s390x.
+# It shows that updates produced on a big-endian s390x node decode correctly on the little-endian server.
+#   docker compose -f deploy/docker-compose.yml build                       # amd64 image zero-exposure-fl:local
+#   docker buildx build --platform linux/s390x -f deploy/Dockerfile -t zero-exposure-fl:s390x --load .   # s390x image (hours under QEMU)
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.mixed.yml up -d --no-build
+services:
+  supernode-1:
+    image: zero-exposure-fl:s390x
+    platform: linux/s390x

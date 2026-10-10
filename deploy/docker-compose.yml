@@ -9,7 +9,7 @@
 #   dashboard   : all four files (read-only) only for the per-hospital majority-class reference line in the charts.
 # /runs is a volume shared by all containers: the demo's inspector channel (events, plain/masked vectors). A real hospital would not share it.
 x-image: &image
-  image: zero-exposure-fl:local
+  image: ${FL_IMAGE:-zero-exposure-fl:local}   # FL_IMAGE=zero-exposure-fl:s390x docker compose up --no-build: use a pre-built image
   init: true   # a tiny init as PID 1 reaps the finished/killed ServerApp and ClientApp processes (no zombies after Stop)
   build:
     context: ..

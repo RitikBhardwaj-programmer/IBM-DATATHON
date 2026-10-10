@@ -113,7 +113,10 @@ def get_parameters(model):
 
 def set_parameters(model, params):
     keys = model.state_dict().keys()
-    model.load_state_dict({k: torch.tensor(v) for k, v in zip(keys, params)}, strict=True)
+    # np.save (Flower's wire format) records the byte order, so arrays from a machine of the OTHER endianness arrive non-native
+    # (e.g. little-endian server -> big-endian s390x client) and torch refuses them. Native order is a no-op on the same architecture.
+    native = [np.asarray(v).astype(np.asarray(v).dtype.newbyteorder("="), copy=False) for v in params]
+    model.load_state_dict({k: torch.tensor(v) for k, v in zip(keys, native)}, strict=True)
 
 
 def make_loader(X, y):
