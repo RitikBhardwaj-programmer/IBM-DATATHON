@@ -9,9 +9,10 @@
 <link rel="preload" href="vendor/fonts/IBMPlexSans-Regular-Latin1.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="vendor/fonts/IBMPlexSans-Bold-Latin1.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
+<script>try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}</script>
 </head>
 <body>
-<a class="skip" href="#live">Skip to the live run</a>
+<a class="skip" href="#console">Skip to the run console</a>
 
 <header class="top">
   <div class="top-in">
@@ -25,7 +26,7 @@
       <a href="#tradeoff">Trade-off</a>
       <a href="#how">Limits</a>
     </nav>
-    <button id="themeBtn" class="btn ghost" type="button" aria-label="Switch colour theme">Theme</button>
+    <button id="themeBtn" class="btn ghost" type="button">Theme</button>
   </div>
 </header>
 
@@ -37,7 +38,7 @@
       <p class="lead">Each hospital learns on its own data and sends only <em>masked, noise-protected</em> model updates.
         The server (the coordinator that merges them) never sees any hospital's update on its own.</p>
       <div class="headline" id="headline" aria-live="polite">
-        <div class="hl-label">Headline, computed from the sweep files</div>
+        <div class="hl-label">Headline: mean of 5 seeds, from the sweep files</div>
         <div class="hl-main" id="hlMain">Loading…</div>
         <div class="hl-sub" id="hlSub"></div>
       </div>
@@ -48,27 +49,31 @@
       <figcaption>
         <b id="heroState">Without masking</b>
         <span id="heroCap">One hospital's 273 update values, as positions on the number line 0 to 2³². Unmasked, they sit in one spot, so the server could read each one.</span>
+        <button id="heroReplay" class="btn ghost hero-replay" type="button" hidden>Show the masking again</button>
       </figcaption>
     </figure>
   </section>
 
   <div class="shell">
     <!-- ===================================================== RUN CONSOLE (sticky rail) -->
-    <aside class="rail" id="console" aria-label="Run console">
-      <div class="kpis" aria-label="Run summary">
+    <aside class="rail" id="console" aria-label="Run console" tabindex="-1">
+      <div class="kpis" role="group" aria-label="Run summary">
         <div class="kpi kpi-main"><span class="kl">Global accuracy</span><span class="kv" id="kAcc">–</span></div>
         <div class="kpi"><span class="kl">Centralized, same training budget</span><span class="kv" id="kCen">–</span></div>
         <div class="kpi"><span class="kl">Round</span><span class="kv" id="kRound">–</span></div>
         <div class="kpi"><span class="kl">Worst-case ε so far</span><span class="kv" id="kEps">–</span></div>
         <div class="kpi kpi-wide" title="Array payload bytes counted by the inspector (arrays plus byte-string config values). Excludes message framing.">
           <span class="kl">Array payload bytes (excl. framing)</span><span class="kv" id="kBytes">–</span><span class="ks" id="kBytesSub"></span></div>
+        <p class="kpi-src" id="kSrc">One run, not the 5-seed mean above.</p>
       </div>
       <form id="ctl" class="console" autocomplete="off">
-        <h2 class="rail-h">Run console</h2>
+        <div class="rail-top">
+          <h2 class="rail-h">Run console</h2>
+          <span id="statusPill" class="pill" role="status">Idle</span>
+        </div>
         <div class="actions">
           <button id="startBtn" class="btn primary" type="submit">Start live run</button>
           <button id="stopBtn" class="btn danger" type="button" disabled>Stop</button>
-          <span id="statusPill" class="pill" role="status">Idle</span>
         </div>
         <label class="prog-wrap">
           <span class="sr-only">Round progress</span>
@@ -88,17 +93,17 @@
             <input id="noise" type="range" min="0" max="5" step="0.1" value="1.0" aria-describedby="noiseHelp">
             <small id="noiseHelp">0 = no privacy noise. More noise = stronger privacy (lower ε) but a bit less accuracy.</small>
           </label>
+          <label class="fld tog">
+            <span class="fld-l">SecAgg+ masking</span>
+            <span class="switch"><input id="secagg" type="checkbox" checked role="switch"><i></i><b id="secaggOut">On</b></span>
+            <small>On = the server only receives masked vectors.</small>
+          </label>
           <fieldset class="seg" id="stratSeg">
             <legend>Averaging</legend>
             <label><input type="radio" name="strategy" value="fedavg" checked><span>FedAvg</span></label>
             <label><input type="radio" name="strategy" value="fedprox"><span>FedProx</span></label>
             <small>FedAvg = plain average. FedProx = average with a leash that keeps each hospital close to the global model.</small>
           </fieldset>
-          <label class="fld tog">
-            <span class="fld-l">SecAgg+ masking</span>
-            <span class="switch"><input id="secagg" type="checkbox" checked role="switch"><i></i><b id="secaggOut">On</b></span>
-            <small>On = the server only receives masked vectors.</small>
-          </label>
           <div class="pair">
             <label class="fld">
               <span class="fld-l">Rounds</span>

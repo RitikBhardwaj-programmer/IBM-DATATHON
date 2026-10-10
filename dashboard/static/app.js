@@ -16,7 +16,7 @@ const loadLS = (k) => { try { return localStorage.getItem(k); } catch (e) { retu
 
 const FONT = '"IBM Plex Sans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';   // vendored in static/vendor/fonts; same stack as styles.css
 function C() {
-  return { text: css('--text'), muted: css('--muted'), grid: css('--grid'), accent: css('--model'), lock: css('--lock'), sky: css('--sky'),
+  return { text: css('--text'), muted: css('--muted'), grid: css('--grid'), accent: css('--model'), lock: css('--lock'), lockFill: css('--lock-fill'), sky: css('--sky'),
     good: css('--good'), warn: css('--warn'), bad: css('--bad'), panel: css('--surface'),
     hosp: [0, 1, 2, 3].map((i) => css('--h' + i)), fedavg: css('--fedavg'), fedprox: css('--fedprox') };
 }
@@ -148,7 +148,7 @@ function setPhase(p, ev) {
   } else {
     clearInterval(startTimer);
   }
-  if (p === 'preview') { ban.classList.add('info'); ban.innerHTML = '<b>Showing a recorded run</b> (the golden run saved in the repository), so every panel has real data before you start. Press <b>Start live run</b> to train for real, or choose <b>Replay</b> to watch this one again.'; }
+  if (p === 'preview') { ban.classList.add('info'); ban.innerHTML = '<b>Showing a recorded run</b> (the golden run), so every panel has real data. ' + (mode === 'live' ? '<b>Start live run</b> trains for real.' : '<b>Play replay</b> shows it round by round.'); }
   else if (p === 'running' || p === 'replay' || p === 'idle') ban.hidden = true;
   else if (p === 'done') {
     const last = S.rounds[S.rounds.length - 1];
@@ -173,6 +173,7 @@ function reflectParams(p) {
   if (p.secagg !== undefined) { $('secagg').checked = !!p.secagg; $('secaggOut').textContent = p.secagg ? 'On' : 'Off'; }
   if (p.rounds) $('rounds').value = p.rounds;
   if (p.seed !== undefined) $('seed').value = p.seed;
+  if (p.noise !== undefined && p.strategy) $('kSrc').textContent = `One run (DP noise ${Number(p.noise).toFixed(1)}, ${p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg'}, SecAgg ${p.secagg ? 'on' : 'off'}, seed ${p.seed}), not the 5-seed mean above.`;
 }
 
 // ============================================================ controls
@@ -182,6 +183,7 @@ document.querySelectorAll('input[name=mode]').forEach((r) => r.addEventListener(
   mode = document.querySelector('input[name=mode]:checked').value;
   $('liveCtl').hidden = mode !== 'live'; $('replayCtl').hidden = mode !== 'replay';
   $('startBtn').textContent = mode === 'live' ? 'Start live run' : 'Play replay';
+  if (S.phase === 'preview') setPhase('preview');
 }));
 
 $('ctl').addEventListener('submit', (e) => { e.preventDefault(); if (mode === 'live') startLive(); else startReplay(); });
@@ -617,6 +619,7 @@ function renderHeroStrip(d) {
   const empty = $('heroEmpty'), cv = $('heroStrip');
   hero.plain = hero.masked = null; cancelAnimationFrame(hero.raf);
   const q = d && d.ready && d.quantized_plain, w = d && d.plain && d.plain.values;
+  $('heroReplay').hidden = true;
   if (!q || !w || !w.length) {
     empty.hidden = false; cv.style.visibility = 'hidden';
     $('heroState').textContent = 'Without masking'; $('heroState').className = '';
@@ -629,11 +632,23 @@ function renderHeroStrip(d) {
   cv.setAttribute('aria-label', hero.masked
     ? `Cipher strip: the hospital's ${w.length} model values. Without masking they all sit within ${((q.max - q.min) / mod * 100).toFixed(3)} percent of the number line; with masking they are spread across the whole range.`
     : `Cipher strip: the hospital's ${w.length} model values, all within ${((q.max - q.min) / mod * 100).toFixed(3)} percent of the number line. SecAgg+ was off, so nothing is masked.`);
-  if (!hero.masked || REDUCED) { hero.progress = hero.masked ? 1 : 0; drawHero(); return; }
+  if (!hero.masked) { hero.progress = 0; drawHero(); return; }
+  $('heroReplay').hidden = false;
+  if (REDUCED) { hero.progress = 1; drawHero(); syncHeroBtn(); return; }
+  playHero();
+}
+function playHero() {
+  cancelAnimationFrame(hero.raf);
   hero.t0 = performance.now() + 700;   // hold the unmasked state for 0.7 s, then mask once
   const tick = (now) => { hero.progress = Math.min(1, Math.max(0, (now - hero.t0) / 1800)); drawHero(); if (hero.progress < 1) hero.raf = requestAnimationFrame(tick); };
   hero.progress = 0; drawHero(); hero.raf = requestAnimationFrame(tick);
 }
+// reduced motion: the button flips between the two states instead of animating
+function syncHeroBtn() { if (REDUCED) $('heroReplay').textContent = hero.progress >= 1 ? 'Show without masking' : 'Show with masking'; }
+$('heroReplay').addEventListener('click', () => {
+  if (!hero.masked) return;
+  if (REDUCED) { hero.progress = hero.progress >= 1 ? 0 : 1; drawHero(); syncHeroBtn(); } else playHero();
+});
 
 function drawHero() {
   const cv = $('heroStrip'); if (!cv || !hero.plain) return;
@@ -652,7 +667,7 @@ function drawHero() {
     const lt = hero.masked ? ease(Math.min(1, Math.max(0, (p - (i / n) * st) / (1 - st)))) : 0;
     const x = padX + plotW * (hero.plain[i] + ((hero.masked ? hero.masked[i] : hero.plain[i]) - hero.plain[i]) * lt);
     const h = (0.3 + 0.7 * frac(i)) * (bottom - top);
-    ctx.globalAlpha = 0.92; ctx.fillStyle = lt > 0.5 ? c.lock : c.bad;
+    ctx.globalAlpha = 0.92; ctx.fillStyle = lt > 0.5 ? c.lockFill : c.bad;
     ctx.fillRect(x - bw / 2, bottom - h, bw, h);
   }
   ctx.globalAlpha = 1;
@@ -673,7 +688,7 @@ new ResizeObserver(() => drawHero()).observe($('heroStrip'));
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => vis.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
     let best = null, bestR = 0; vis.forEach((r, id) => { if (r > bestR) { best = id; bestR = r; } });
-    if (best) setCur(best);
+    setCur(best);
   }, { rootMargin: '-80px 0px -45% 0px', threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] });
   secs.forEach((x) => x && io.observe(x));
 }
@@ -758,13 +773,14 @@ function renderSweeps(data) {
   const g = m ? gs.find((x) => x.source === m[1] && String(x.secagg) === m[2] && x.strategy === m[3] && String(x.noise) === String(Number(m[4]))) : null;
   if (h.gap_points === null) { $('hlMain').textContent = 'No sweep results found.'; $('trHeadline').textContent = 'No sweep results found.'; }
   else {
-    const main = `Within ${h.gap_points.toFixed(1)} accuracy points (${h.relative_gap_pct.toFixed(1)}%) of a centralized model, at ε ≈ ${h.epsilon.toFixed(1)}, without sharing patient data.`;
+    const main = `Within ${h.gap_points.toFixed(1)} accuracy points (${h.relative_gap_pct.toFixed(1)}%) of a centralized model, at ε ≈ ${h.epsilon.toFixed(1)}, without sharing patient data.`;
     $('hlMain').textContent = main;
     const cfg = g ? `${g.strategy === 'fedavg' ? 'FedAvg' : 'FedProx'}, DP noise ${g.noise}, SecAgg ${g.secagg ? 'on' : 'off'}` : h.source;
     const accs = g ? ` Federated ${pct(g.mean_fed_acc, 2)} vs centralized ${pct(g.mean_central_acc, 2)} (mean of ${g.n_seeds} seeds).` : '';
     const sp = g ? g.std_fed_acc * 100 : null;
     const spread = sp === null ? '' : h.gap_points <= sp ? ` The gap is within the seed-to-seed spread of ±${sp.toFixed(1)} points, so it is not a proven difference.` : ` For scale: results move by ±${sp.toFixed(1)} points between seeds.`;
-    $('hlSub').textContent = `Most private configuration we ran (${cfg}), not the most accurate.${accs}${spread}`;
+    const band = h.epsilon > 10 ? ' ε above 10 is in the weak band of the ε chart: the hospitals are small, so the privacy cost shows up in ε.' : '';
+    $('hlSub').textContent = `Most private configuration we ran (${cfg}), not the most accurate.${accs}${spread}${band}`;
     $('trHeadline').innerHTML = `<b>${esc(main)}</b><small>This is the most private configuration (lowest ε), not the best-looking one. Computed from <code>${esc(h.source)}</code> by dashboard/sweeps.py.${esc(accs)}${esc(spread)}</small>`;
     if (g) {
       const spread = g.std_fed_acc * 100;
