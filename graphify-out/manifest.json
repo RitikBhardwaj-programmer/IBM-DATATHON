@@ -12,9 +12,9 @@
     "semantic_hash": "b546d0904d92b1b570732c97c4fba9f2"
   },
   "CLAUDE.md": {
-    "mtime": 1791537102.7233255,
-    "seen": 1791538284.5963452,
-    "ast_hash": "be64746d59ebd5a73ad112542bede4f1",
+    "mtime": 1791611000.953383,
+    "seen": 1791612027.081642,
+    "ast_hash": "d721c7b4d1cab1a80df8f26bac32a278",
     "semantic_hash": ""
   },
   "artifacts/corporate-ai-circuit/index.html": {
@@ -78,8 +78,8 @@
     "semantic_hash": ""
   },
   "step4_heart_secagg.py": {
-    "mtime": 1791538120.1234658,
-    "seen": 1791538284.5963392,
+    "mtime": 1791541575.276382,
+    "seen": 1791612027.0816371,
     "ast_hash": "8c51f40bc7db14890b88b236d549aab3",
     "semantic_hash": ""
   },
@@ -90,57 +90,57 @@
     "semantic_hash": ""
   },
   "dashboard/__init__.py": {
-    "mtime": 1791530543.5197723,
-    "seen": 1791538284.59632,
+    "mtime": 1791541575.2594018,
+    "seen": 1791612027.0816226,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
   "dashboard/replays/golden_run/inspect.json": {
-    "mtime": 1791537809.618176,
-    "seen": 1791538284.5963228,
+    "mtime": 1791541575.2594018,
+    "seen": 1791612027.0816243,
     "ast_hash": "5b860ac52ceb8459fc2456cd6b30e5c3",
     "semantic_hash": ""
   },
   "dashboard/replays/golden_run/plain_meta.json": {
-    "mtime": 1791537809.6023922,
-    "seen": 1791538284.5963242,
+    "mtime": 1791541575.2594018,
+    "seen": 1791612027.0816255,
     "ast_hash": "6c1857af9e724a2665307ef64a06fd54",
     "semantic_hash": ""
   },
   "dashboard/server.py": {
-    "mtime": 1791540397.7832687,
-    "seen": 1791540914.5511158,
+    "mtime": 1791541575.2727854,
+    "seen": 1791612027.0816264,
     "ast_hash": "86bd9f622e4e8d634bc59ac995b8c47c",
     "semantic_hash": ""
   },
   "dashboard/sweeps.py": {
-    "mtime": 1791530415.9330049,
-    "seen": 1791538284.5963259,
-    "ast_hash": "626f2107bd90e7efbd11f8a174387f3d",
+    "mtime": 1791541575.2756493,
+    "seen": 1791612027.0816293,
+    "ast_hash": "34ffee374737c8d360b13beeb4cb15b9",
     "semantic_hash": ""
   },
   "dashboard/test_sweeps.py": {
-    "mtime": 1791530324.8861704,
-    "seen": 1791538284.5963268,
-    "ast_hash": "8bce98f9dea6c7667df5e0f5aeb9612f",
+    "mtime": 1791541575.276382,
+    "seen": 1791612027.08163,
+    "ast_hash": "626f4d7bf987dcb7e7ff3f2310541296",
     "semantic_hash": ""
   },
   "test_dashboard.py": {
-    "mtime": 1791540751.5291364,
-    "seen": 1791540914.5511396,
+    "mtime": 1791541575.2856872,
+    "seen": 1791612027.0816379,
     "ast_hash": "d02198591a9feb1404e2d7d395116cd2",
     "semantic_hash": ""
   },
   ".claude/plans/dashboard.md": {
-    "mtime": 1791530189.682299,
-    "seen": 1791538284.596344,
-    "ast_hash": "fd47afe71e28ed33c2b92ead13a72624",
+    "mtime": 1791541575.2594018,
+    "seen": 1791612027.0816407,
+    "ast_hash": "57a877fee9fec685e2929d9c0a99c470",
     "semantic_hash": ""
   },
   "dashboard/static/index.html": {
-    "mtime": 1791540397.6263916,
-    "seen": 1791540914.5511575,
-    "ast_hash": "9836f2302ba7d0497d5f0d721edd9cf5",
+    "mtime": 1791611871.3211012,
+    "seen": 1791612027.0816476,
+    "ast_hash": "f844e7844bd00ab85cefc90c7a23b3b5",
     "semantic_hash": ""
   },
   "team/zero_exposure_logo.png": {
@@ -156,27 +156,33 @@
     "semantic_hash": ""
   },
   "dashboard/static/app.js": {
-    "mtime": 1791540454.5895202,
-    "seen": 1791540914.5511177,
-    "ast_hash": "2bafafb390b14df321546439870fc9b2",
+    "mtime": 1791611871.3226037,
+    "seen": 1791612027.0816274,
+    "ast_hash": "fbd367c41b7e468886092c9e48067cf5",
     "semantic_hash": ""
   },
   "dashboard/static/vendor/chart.umd.min.js": {
-    "mtime": 1791538639.0164914,
-    "seen": 1791539593.8035216,
+    "mtime": 1791541575.2747948,
+    "seen": 1791612027.0816278,
     "ast_hash": "50cf2ab0db25f5d6df90a1046520e68e",
     "semantic_hash": ""
   },
   "dashboard/static/zero_exposure_logo.svg": {
-    "mtime": 1791538639.2225318,
-    "seen": 1791539593.8035746,
-    "ast_hash": "7de7f69539539016705cce938211f9cc",
+    "mtime": 1791541575.2756493,
+    "seen": 1791612027.08165,
+    "ast_hash": "a4fa3ba07b2b6b62cbd37b40f787ae96",
     "semantic_hash": ""
   },
   ".claude/launch.json": {
     "mtime": 1791539794.660553,
     "seen": 1791540914.551091,
     "ast_hash": "8dd569b4f2d52e37a1de4be60e3a9018",
+    "semantic_hash": ""
+  },
+  "dashboard/static/vendor/fonts/OFL.txt": {
+    "mtime": 1791610565.6278741,
+    "seen": 1791612027.0816488,
+    "ast_hash": "4d4949dda4b23922e334f0cbf6179065",
     "semantic_hash": ""
   }
 }

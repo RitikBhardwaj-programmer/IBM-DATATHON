@@ -1,17 +1,17 @@
-# Graph Report - IBM DATATHON  (2026-10-09)
+# Graph Report - IBM DATATHON  (2026-10-10)
 
 ## Corpus Check
-- 22 files · ~35,495 words
+- 22 files · ~37,482 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 16 file(s) not represented in the graph (top: .jsonl 8, .npy 3, (none) 2)
+- Unclassified: 20 file(s) not represented in the graph (top: .jsonl 8, .woff2 4, .npy 3)
 
 ## Summary
-- 1140 nodes · 2781 edges · 60 communities (47 shown, 13 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 107 edges (avg confidence: 0.84)
+- 1147 nodes · 2800 edges · 59 communities (46 shown, 13 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 108 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `205f6b8c`
+- Built from commit: `70844ac1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,45 +32,43 @@
 - app.js
 - chart.umd.min.js
 - en
-- pa
-- Ji
+- xs
+- .isHorizontal
 - N
 - zs
 - r
 - i
 - ae
-- .isHorizontal
-- updateElements
+- O
+- .getMinMax
 - ks
 - I
 - os
-- de
+- qa
 - CLAUDE.md
-- t
+- gs
 - da
 - .configure
-- .getDatasetMeta
+- ._handleEvent
 - wi
 - gen
-- mn
-- .parse
-- .notifyPlugins
-- On
+- f
+- .getDataset
+- .render
+- z
 - inspect_payload
-- P
+- updateElements
 - RunManager
-- ma
-- .buildOrUpdateControllers
+- .constructor
+- .stop
 - Track 2 AI Secured
 - test_dashboard.py
-- za
+- .notifyPlugins
 - Opacus
-- generateLabels
-- .getSortedVisibleDatasetMetas
-- ._resetElements
-- d
+- t
+- .update
 - e
-- ._updateVisibility
+- .getDatasetMeta
 - revalidate_static
 - ._update
 - RunRequest
@@ -110,7 +108,7 @@
 - **Private FL stack: FL + DP + SecAgg** — ibm_hackathon_learning_federated_learning, ibm_hackathon_learning_differential_privacy, ibm_hackathon_learning_secure_aggregation [EXTRACTED 1.00]
 - **2026 tracks** — artifacts_z_datathon_playbook_index_track_1_real_time_ai, artifacts_z_datathon_playbook_index_track_2_ai_secured, artifacts_z_datathon_playbook_index_track_3_wildcard [EXTRACTED 1.00]
 
-## Communities (60 total, 13 thin omitted)
+## Communities (59 total, 13 thin omitted)
 
 ### Community 0 - "Z Datathon Playbook"
 Cohesion: 0.09
@@ -153,108 +151,112 @@ Cohesion: 0.22
 Nodes (8): Files, Goal, Layout, Risks and the test for each, Stack (approved), Stages, Step 5: live privacy dashboard (approved 2026-10-09), Verification (acceptance criteria)
 
 ### Community 13 - "app.js"
-Cohesion: 0.08
-Nodes (68): applyTrFilters(), attach(), attachCurrent(), axisTitle(), bandsPlugin, baseOptions(), boot(), buildHospitalCharts() (+60 more)
+Cohesion: 0.07
+Nodes (75): applyTrFilters(), attach(), attachCurrent(), axisTitle(), bandsPlugin, baseOptions(), boot(), buildHospitalCharts() (+67 more)
 
 ### Community 14 - "chart.umd.min.js"
-Cohesion: 0.06
-Nodes (21): addControllers(), addElements(), addPlugins(), addScales(), afterEvent(), destroy(), _each(), _exec() (+13 more)
+Cohesion: 0.05
+Nodes (28): addControllers(), addElements(), addPlugins(), addScales(), as(), beforeLayout(), cn(), destroy() (+20 more)
 
 ### Community 16 - "en"
 Cohesion: 0.06
-Nodes (21): add(), buildLookupTable(), diff(), en, endOf(), format(), formats(), _generate() (+13 more)
+Nodes (22): add(), buildLookupTable(), buildTicks(), determineDataLimits(), diff(), en, endOf(), format() (+14 more)
+
+### Community 17 - "xs"
+Cohesion: 0.21
+Nodes (5): bs, ki(), stop(), Xi(), xs
 
 ### Community 19 - "N"
-Cohesion: 0.05
-Nodes (31): A(), afterDraw(), beforeLayout(), Ci(), cn(), Di(), Fn(), H() (+23 more)
+Cohesion: 0.12
+Nodes (15): A(), afterDraw(), afterEvent(), Ci(), Fn(), H(), j(), jn() (+7 more)
+
+### Community 20 - "zs"
+Cohesion: 0.10
+Nodes (3): d(), Si(), zs
 
 ### Community 21 - "r"
-Cohesion: 0.11
-Nodes (16): Ai(), at(), dt(), r(), fa(), ft(), ga(), gt() (+8 more)
+Cohesion: 0.18
+Nodes (12): Ai(), at(), r(), ft(), gt(), hi(), li(), logarithmic() (+4 more)
 
 ### Community 22 - "i"
 Cohesion: 0.13
-Nodes (20): Aa(), C(), ca(), draw(), fi(), ht(), ii(), c() (+12 more)
+Nodes (22): ca(), draw(), fi(), Ge(), getMaxOverflow(), Gi(), Ha(), ht() (+14 more)
 
 ### Community 23 - "ae"
-Cohesion: 0.12
-Nodes (8): ae, color(), ee(), ie(), ne(), oe(), re(), te()
+Cohesion: 0.08
+Nodes (13): ae, color(), de(), Et(), It(), jt(), ke(), ne() (+5 more)
 
-### Community 24 - ".isHorizontal"
-Cohesion: 0.13
-Nodes (6): ct(), Es(), getPixelForTick(), Is(), Le(), Rs()
+### Community 24 - "O"
+Cohesion: 0.10
+Nodes (14): ct(), ee(), Es(), getBasePixel(), getPixelForTick(), getPixelForValue(), ie(), Is() (+6 more)
 
-### Community 25 - "updateElements"
-Cohesion: 0.19
-Nodes (6): _calculateBarValuePixels(), getPixelForValue(), getValueForPixel(), mt(), updateElements(), ys()
+### Community 25 - ".getMinMax"
+Cohesion: 0.29
+Nodes (3): _s(), updateRangeFromParsed(), ys()
 
-### Community 26 - "ks"
-Cohesion: 0.06
-Nodes (16): bs, fs(), _getAnims(), getPlugin(), has(), ia(), ki(), ks() (+8 more)
+### Community 27 - "I"
+Cohesion: 0.15
+Nodes (3): generateLabels(), I(), ya()
 
 ### Community 28 - "os"
-Cohesion: 0.10
-Nodes (5): labelColor(), labelPointStyle(), os(), Ss(), updateRangeFromParsed()
+Cohesion: 0.13
+Nodes (4): labelColor(), labelPointStyle(), os(), Ss()
 
-### Community 29 - "de"
-Cohesion: 0.17
-Nodes (8): de(), Fe(), Ge(), jt(), ke(), se(), Xt(), ze()
+### Community 29 - "qa"
+Cohesion: 0.15
+Nodes (5): Fe(), He(), qa, ua(), Xt()
 
 ### Community 30 - "CLAUDE.md"
 Cohesion: 0.19
 Nodes (15): AI Secured track, Artifacts folder, Federated Learning Toolkit, Flower, IBM Z Datathon 2026 FL prep, Knowledge graph graphify-out, Non-IID simulated hospitals, Opacus (+7 more)
 
-### Community 31 - "t"
-Cohesion: 0.11
-Nodes (16): apply(), as(), bt(), cs(), ds(), ei(), gs, hs() (+8 more)
+### Community 31 - "gs"
+Cohesion: 0.09
+Nodes (10): cs(), ds(), ei(), gs, hs(), Ji, qi(), ti() (+2 more)
 
 ### Community 32 - "da"
-Cohesion: 0.19
-Nodes (5): da(), parseArrayData(), parseObjectData(), parsePrimitiveData(), resolveDataElementOptions()
+Cohesion: 0.20
+Nodes (3): da(), parseArrayData(), parsePrimitiveData()
 
 ### Community 33 - ".configure"
-Cohesion: 0.25
-Nodes (6): addBox(), configure(), getScale(), Qs(), _refresh(), start()
+Cohesion: 0.17
+Nodes (7): addBox(), configure(), getScale(), Qs(), _refresh(), removeBox(), start()
 
 ### Community 35 - "wi"
-Cohesion: 0.23
-Nodes (11): average(), _e(), getCenterPoint(), inRange(), nearest(), Ni(), oa(), pt() (+3 more)
+Cohesion: 0.17
+Nodes (11): average(), Bi(), dataset(), _e(), getCenterPoint(), inRange(), nearest(), Ni() (+3 more)
 
 ### Community 36 - "gen"
 Cohesion: 0.22
 Nodes (11): check_run_id(), Status dict of a run: from memory if it is the current one, else from meta.json…, Complete JSON lines appended after `offset`. A half-written last line is left…, read_new_lines(), run_events(), gen(), run_status(), sse() (+3 more)
 
-### Community 37 - "mn"
-Cohesion: 0.21
-Nodes (8): bn(), getBasePixel(), kn(), mn(), pn(), sn(), xn(), yn
+### Community 37 - "f"
+Cohesion: 0.10
+Nodes (14): Aa(), bn(), C(), getDecimalForValue(), getValueForPixel(), kn(), mt(), f() (+6 more)
 
-### Community 38 - ".parse"
+### Community 38 - ".getDataset"
 Cohesion: 0.14
-Nodes (3): Ms(), Ps(), yt()
+Nodes (5): beforeUpdate(), initialize(), Ms(), Ps(), yt()
 
-### Community 39 - ".notifyPlugins"
-Cohesion: 0.31
-Nodes (3): Ce(), ea(), running()
-
-### Community 40 - "On"
-Cohesion: 0.23
-Nodes (3): afterUpdate(), An(), On
+### Community 40 - "z"
+Cohesion: 0.18
+Nodes (7): afterUpdate(), An(), Di(), Nn(), On, x(), z()
 
 ### Community 41 - "inspect_payload"
 Cohesion: 0.22
 Nodes (11): export_replay(), get_replay(), hist(), inspect_payload(), merged_events(), Per-hospital stage logs written by the inspector (one writer per file, so no…, All events of a finished run in time order: baseline + rounds + stages (+ final…, The 'what the server sees' data of one run: plain update, received masked… (+3 more)
 
-### Community 42 - "P"
-Cohesion: 0.15
-Nodes (11): _calculateBarIndexPixels(), getLabelAndValue(), getLabelForValue(), _getRuler(), _getStackCount(), _getStackIndex(), _getStacks(), label() (+3 more)
+### Community 42 - "updateElements"
+Cohesion: 0.06
+Nodes (19): _calculateBarIndexPixels(), dt(), fa(), ga(), getLabelAndValue(), getLabelForValue(), _getRuler(), _getStackCount() (+11 more)
 
 ### Community 43 - "RunManager"
 Cohesion: 0.36
 Nodes (3): kill_tree(), Kill proc and all its descendants (Ray raylet/workers included)., RunManager
 
-### Community 45 - ".buildOrUpdateControllers"
-Cohesion: 0.22
-Nodes (3): getController(), ra(), remove()
+### Community 44 - ".constructor"
+Cohesion: 0.25
+Nodes (5): ea(), fs(), ia(), sa(), xe()
 
 ### Community 46 - "Track 2 AI Secured"
 Cohesion: 0.29
@@ -264,25 +266,17 @@ Nodes (8): Federated learning privacy demo, Flower framework, Homomorphic encryp
 Cohesion: 0.29
 Nodes (4): parse_result(), Checks for step 5 (dashboard backend + hooks in step4_heart_secagg.py). Plain…, Run step4 as a subprocess (it reads its settings from env at import time).…, run_step4()
 
-### Community 48 - "za"
-Cohesion: 0.29
-Nodes (5): Et(), It(), rt(), Tt(), za()
-
 ### Community 49 - "Opacus"
 Cohesion: 0.29
 Nodes (7): Differential privacy loan risk Opacus, Docker containerization, Flask or Streamlit demo, Prerequisites, IBM LinuxONE Docker, Opacus, Toolkit stack
 
-### Community 51 - ".getSortedVisibleDatasetMetas"
-Cohesion: 0.20
-Nodes (10): beforeDatasetDraw(), beforeDatasetsDraw(), beforeDraw(), Bi(), dataset(), getRange(), index(), vi() (+2 more)
+### Community 51 - "t"
+Cohesion: 0.13
+Nodes (17): apply(), beforeDatasetDraw(), beforeDatasetsDraw(), beforeDraw(), bt(), getRange(), index(), ka() (+9 more)
 
-### Community 52 - "._resetElements"
-Cohesion: 0.33
-Nodes (3): beforeUpdate(), initialize(), reset()
-
-### Community 53 - "d"
-Cohesion: 0.15
-Nodes (4): buildTicks(), d(), determineDataLimits(), Si()
+### Community 52 - ".update"
+Cohesion: 0.27
+Nodes (3): getController(), reset(), ta()
 
 ### Community 54 - "e"
 Cohesion: 0.38
@@ -301,21 +295,21 @@ Cohesion: 0.67
 Nodes (3): 422 without echoing the offending input: NaN/inf in the input would make the…, validation_error(), exception_handler
 
 ## Knowledge Gaps
-- **48 isolated node(s):** `MARKERS`, `nf`, `registry`, `STAGE_IDX`, `STAGE_NAME` (+43 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 215 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **49 isolated node(s):** `MARKERS`, `nf`, `registry`, `STAGE_IDX`, `STAGE_NAME` (+44 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 216 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `zs` connect `zs` to `.parse`, `P`, `chart.umd.min.js`, `en`, `N`, `d`, `r`, `e`, `.isHorizontal`, `updateElements`, `ks`?**
-  _High betweenness centrality (0.052) - this node is a cross-community bridge._
-- **Why does `I()` connect `I` to `.configure`, `.getDatasetMeta`, `.notifyPlugins`, `P`, `ma`, `.buildOrUpdateControllers`, `chart.umd.min.js`, `generateLabels`, `N`, `.getSortedVisibleDatasetMetas`, `._resetElements`, `._updateVisibility`, `.isHorizontal`, `ks`, `t`?**
-  _High betweenness centrality (0.047) - this node is a cross-community bridge._
-- **Why does `ae` connect `ae` to `za`, `de`, `chart.umd.min.js`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `x()` connect `z` to `app.js`, `chart.umd.min.js`, `N`, `t`, `O`?**
+  _High betweenness centrality (0.097) - this node is a cross-community bridge._
+- **Why does `zs` connect `zs` to `f`, `updateElements`, `chart.umd.min.js`, `en`, `xs`, `.isHorizontal`, `e`, `O`, `qa`?**
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **Why does `I()` connect `I` to `.configure`, `._handleEvent`, `wi`, `.render`, `z`, `updateElements`, `.constructor`, `.stop`, `chart.umd.min.js`, `.notifyPlugins`, `.isHorizontal`, `t`, `.update`, `N`, `.getDatasetMeta`, `O`, `qa`, `gs`?**
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
 - **What connects `MARKERS`, `nf`, `registry` to the rest of the system?**
-  _48 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _49 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Z Datathon Playbook` be split into smaller, more focused modules?**
   _Cohesion score 0.09243697478991597 - nodes in this community are weakly interconnected._
 - **Should `step2_heart_fedavg_fedprox.py` be split into smaller, more focused modules?**
