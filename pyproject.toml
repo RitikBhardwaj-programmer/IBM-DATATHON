@@ -1,0 +1,31 @@
+[project]
+name = "zero-exposure-heart"
+version = "1.0.0"
+description = "Step 6: private federated learning on UCI Heart Disease, run as a Flower deployment (SuperLink + 4 SuperNodes)"
+license = "Apache-2.0"
+
+[tool.flwr.app]
+publisher = "zero-exposure"
+# Only the three modules go into the FAB that `flwr run` ships (no tests, dashboard runs, data or artifacts).
+fab-include = ["step3_heart_dp.py", "step4_heart_secagg.py", "step6_heart_deploy.py"]
+
+[tool.flwr.app.components]
+serverapp = "step6_heart_deploy:app"
+clientapp = "step6_heart_deploy:client_app"
+
+# Defaults = step 4's defaults. Override per run: flwr run . local --run-config "noise=2.0 secagg=0 rounds=3"
+# Floats must contain a decimal point (the override must keep the default's type). Empty string = not set.
+[tool.flwr.app.config]
+rounds = 20
+local-epochs = 5
+noise = 1.0
+clip = 1.0
+delta = 0.00001
+strategy = "fedavg"
+mu = 0.1
+seed = 0
+secagg = 1
+events-file = ""
+inspect-dir = ""
+inspect-round = 1
+debug-dir = ""
