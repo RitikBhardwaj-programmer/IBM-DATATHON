@@ -22,7 +22,7 @@ function C() {
 }
 
 const registry = [];                                   // [{chart, style}] so a theme switch can recolour every chart
-function register(chart, style) { registry.push({ chart, style }); restyleOne({ chart, style }); return chart; }
+function register(chart, style) { registry.push({ chart, style }); fitWidth(chart, chart.width); restyleOne({ chart, style }); return chart; }
 function unregister(chart) { const i = registry.findIndex((r) => r.chart === chart); if (i >= 0) registry.splice(i, 1); chart.destroy(); }
 function restyleOne({ chart, style }) {
   const c = C();
@@ -50,9 +50,34 @@ Chart.defaults.plugins.tooltip.bodyFont = { size: 14 };
 
 function baseOptions(extra = {}) {
   return Object.assign({ responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', intersect: false },
-    plugins: { legend: { display: false } } }, extra);
+    onResize: (ch, size) => fitWidth(ch, size.width), plugins: { legend: { display: false } } }, extra);
 }
-const axisTitle = (text) => ({ display: true, text, font: { size: 14, weight: '600' } });
+const axisTitle = (text, short) => ({ display: true, text, longText: text, shortText: short || text, font: { size: 14, weight: '600' } });
+
+// Narrow charts (phones): smaller markers and legend, short axis titles. Runs at register time and on every resize
+// (Chart.js updates after onResize, so no update() here).
+const NARROW = 450;
+function fitWidth(ch, w) {
+  const n = w < NARROW, o = ch.options;
+  if (o.plugins.legend && o.plugins.legend.display) { o.plugins.legend.labels.font = { size: n ? 12 : 15 }; o.plugins.legend.labels.padding = n ? 8 : 14; }
+  ch.data.datasets.forEach((d) => {
+    if (d.fullRadius === undefined) d.fullRadius = d.pointRadius;
+    if (typeof d.fullRadius === 'number' && d.fullRadius > 0) d.pointRadius = n ? Math.max(2, Math.round(d.fullRadius * 0.55)) : d.fullRadius;
+  });
+  for (const s of Object.values(o.scales || {})) {
+    if (s.title && s.title.shortText) s.title.text = n ? s.title.shortText : s.title.longText;
+    if (s.ticks) s.ticks.maxRotation = n ? 0 : 50;   // flat ticks on phones; autoSkip thins them instead (50 = Chart.js default)
+  }
+}
+
+// Canvas label on a small backdrop, so it stays readable over gridlines, bars and points.
+function backedText(ctx, text, x, y, color) {
+  const m = ctx.measureText(text), h = 16, pad = 4;
+  const left = ctx.textAlign === 'right' ? x - m.width : ctx.textAlign === 'center' ? x - m.width / 2 : x;
+  const top = ctx.textBaseline === 'bottom' ? y - h : ctx.textBaseline === 'top' ? y : y - h / 2;
+  ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = css('--surface'); ctx.fillRect(left - pad, top - 1, m.width + 2 * pad, h + 2); ctx.restore();
+  ctx.fillStyle = color; ctx.fillText(text, x, y);
+}
 
 // theme toggle: explicit choice wins, else the OS setting
 function effectiveTheme() { return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); }
@@ -267,6 +292,16 @@ async function startReplay() {
   step();
 }
 
+// "20261009-160619-a8eb10" + params -> "9 Oct 16:06: DP noise 1.0, FedProx, SecAgg on, 30 rounds, seed 57"
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function replayLabel(r) {
+  if (r.kind === 'replay') return r.name === 'golden_run' ? 'Golden run (saved recording)' : `${r.name} (saved recording)`;
+  const m = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(r.name), p = r.params;
+  const when = m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[4]}:${m[5]}` : r.name;
+  if (!p) return `${when} (your earlier run)`;
+  return `${when}: DP noise ${Number(p.noise).toFixed(1)}, ${p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg'}, SecAgg ${p.secagg ? 'on' : 'off'}, ${p.rounds} rounds, seed ${p.seed}`;
+}
+
 // instant, untimed version of the same events: the page opens already populated
 async function showPreview() {
   try {
@@ -305,8 +340,8 @@ const endLabelPlugin = {
       if (!d.endLabel || !chart.isDatasetVisible(i) || !d.data.length) return;
       const meta = chart.getDatasetMeta(i), pt = meta.data[meta.data.length - 1]; if (!pt) return;
       const { ctx, chartArea: a } = chart; ctx.save();
-      ctx.fillStyle = d.borderColor; ctx.font = `700 14px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-      ctx.fillText(d.endLabel, a.right - 6, pt.y - 6); ctx.restore();
+      ctx.font = `700 14px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+      backedText(ctx, chart.width < NARROW && d.endLabelShort ? d.endLabelShort : d.endLabel, a.right - 6, pt.y - 6, d.borderColor); ctx.restore();
     });
   },
 };
@@ -316,12 +351,12 @@ function makeAccChart() {
     type: 'line',
     data: { datasets: [
       { label: 'Global model (federated)', data: [], pointStyle: 'circle', pointRadius: 4, borderWidth: 3, tension: 0.15 },
-      { label: 'Centralized, same training budget', data: [], borderDash: [8, 6], borderWidth: 3, pointRadius: 0, endLabel: 'centralized, same training budget' },
+      { label: 'Centralized, same training budget', data: [], borderDash: [8, 6], borderWidth: 3, pointRadius: 0, endLabel: 'centralized, same training budget', endLabelShort: 'centralized' },
     ] },
     options: baseOptions({
       scales: {
-        x: { type: 'linear', min: 0, max: 15, title: axisTitle('Round (0 = untrained model)'), ticks: { maxTicksLimit: 16, stepSize: 1, font: { size: 14 } } },
-        y: { min: 0, max: 1, title: axisTitle('Accuracy on held-out patients'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
+        x: { type: 'linear', min: 0, max: 15, title: axisTitle('Round (0 = untrained model)', 'Round'), ticks: { maxTicksLimit: 16, stepSize: 1, font: { size: 14 } } },
+        y: { min: 0, max: 1, title: axisTitle('Accuracy on held-out patients', 'Accuracy'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
       },
       plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, font: { size: 15 }, boxWidth: 10, boxHeight: 10, padding: 14 } },
         tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${pct(c.parsed.y, 2)}` } } },
@@ -338,7 +373,7 @@ function makeEpsChart() {
     options: baseOptions({
       scales: {
         x: { type: 'linear', min: 0, max: 15, title: axisTitle('Round'), ticks: { maxTicksLimit: 16, stepSize: 1, font: { size: 14 } } },
-        y: { type: 'logarithmic', min: 1, max: 100, title: axisTitle('ε so far (log scale)'),
+        y: { type: 'logarithmic', min: 1, max: 100, title: axisTitle('ε so far (log scale)', 'ε (log)'),
           afterBuildTicks: (ax) => { ax.ticks = [0.1, 1, 10, 100, 1000].filter((v) => v >= ax.min && v <= ax.max).map((value) => ({ value })); },
           ticks: { callback: (v) => String(v), font: { size: 14 } } },
       },
@@ -380,7 +415,7 @@ function buildStrip() {
   const N = S.nRounds;
   S.hospitals.forEach((name, h) => {
     const row = document.createElement('div'); row.className = 'srow';
-    row.innerHTML = `<div class="sl"><i class="swatch ${MARKERS[h]}" style="background:var(--h${h})"></i><span>${esc(name)}</span></div>`;
+    row.innerHTML = `<div class="sl"><i class="swatch ${MARKERS[h]}" style="background:var(--h${h})"></i><span class="sl-long">${esc(name)}</span><span class="sl-short" aria-hidden="true">${esc(name.slice(0, 3))}</span></div>`;
     const cells = document.createElement('div'); cells.className = 'cells'; S.cells[h] = {};
     for (let r = 1; r <= N; r++) {
       const c = document.createElement('div'); c.className = 'cell' + (S.plainMode ? ' plain-mode' : ''); c.title = `${name}, round ${r}`;
@@ -427,6 +462,8 @@ function render() {
     accChart.data.datasets[0].data = acc;
     accChart.data.datasets[1].data = base ? [{ x: 0, y: base.central_acc }, { x: N, y: base.central_acc }] : [];
     accChart.update('none');
+    $('accChart').setAttribute('aria-label', last ? `Global accuracy per round. After round ${last.round} of ${last.total_rounds}: ${pct(last.acc)}`
+      + (base ? `; centralized baseline ${pct(base.central_acc)}.` : '.') : 'Global accuracy per round. No rounds yet.');
   }
   // epsilon chart
   if (epsChart) {
@@ -445,6 +482,10 @@ function render() {
     if (base && !dp) { nt.hidden = false; nt.innerHTML = '<b>Noise is 0, so there is no differential privacy.</b> ε is unbounded (∞) and there is nothing to plot. Masking (SecAgg+) still hides single updates from the server.'; }
     else if (rs.length && !hasEps && base) { nt.hidden = false; nt.textContent = 'No ε reported for this run.'; } else nt.hidden = true;
     epsChart.update('none');
+    const le = last && last.epsilon ? last.epsilon : null;
+    $('epsChart').setAttribute('aria-label', le && le.some((v) => v !== null)
+      ? `Privacy budget ε per hospital after round ${last.round}: ` + S.hospitals.map((n, h) => `${n} ${le[h] === null ? 'none' : le[h].toFixed(1)}`).join(', ') + '.'
+      : 'Privacy budget ε per hospital. No ε values yet.');
   }
   // hospital small multiples
   hospCharts.forEach((ch, h) => {
@@ -454,6 +495,8 @@ function render() {
     const mj = S.majority && S.majority[S.hospitals[h]] ? S.majority[S.hospitals[h]].majority_acc : null;
     ch.data.datasets[2].data = mj === null ? [] : [{ x: 0, y: mj }, { x: Math.max(N, 1), y: mj }];
     ch.update('none');
+    const cv = $('hc' + h);
+    if (cv && base) cv.setAttribute('aria-label', `Accuracy of ${S.hospitals[h]}: trained alone ${pct(base.local_per_hospital_acc[h])}` + (last ? `, shared model ${pct(last.per_hospital_acc[h])} after round ${last.round}.` : '.'));
     const el = $('hs' + h);
     if (el && base) el.textContent = (last ? `alone ${pct(base.local_per_hospital_acc[h])} → shared ${pct(last.per_hospital_acc[h])}` : `alone ${pct(base.local_per_hospital_acc[h])}`)
       + (mj === null ? '' : ` · guess-common ${pct(mj)}`);
@@ -512,8 +555,8 @@ const needlePlugin = { id: 'expected', afterDatasetsDraw(chart, _a, opts) {
   if (!opts || !opts.value) return;
   const { ctx, chartArea: a, scales: { y } } = chart, py = y.getPixelForValue(opts.value);
   ctx.save(); ctx.strokeStyle = opts.color; ctx.setLineDash([8, 6]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
-  ctx.setLineDash([]); ctx.fillStyle = opts.color; ctx.font = `600 13px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-  ctx.fillText(opts.label, a.right - 6, py - 4); ctx.restore();
+  ctx.setLineDash([]); ctx.font = `600 13px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  backedText(ctx, opts.label, a.right - 6, py - 4, opts.color); ctx.restore();
 } };
 
 function sharedAxisChart(canvas, showTicks, ytitle) {
@@ -523,7 +566,7 @@ function sharedAxisChart(canvas, showTicks, ytitle) {
       interaction: { mode: 'nearest', intersect: true },
       layout: { padding: { right: 14 } },
       scales: {
-        x: { type: 'linear', offset: false, min: 0, max: 4294967296, title: showTicks ? axisTitle('Value on the number line 0 … 2³² (modular range, 4,294,967,296)') : { display: false },
+        x: { type: 'linear', offset: false, min: 0, max: 4294967296, title: showTicks ? axisTitle('Value on the number line 0 … 2³² (modular range, 4,294,967,296)', 'Number line 0 … 2³²') : { display: false },
           ticks: { display: showTicks, stepSize: 1073741824, font: { size: 14 },
             callback: (v) => ({ 0: '0', 1073741824: '¼', 2147483648: '½', 3221225472: '¾', 4294967296: '2³²' }[v] ?? '') } },
         y: { beginAtZero: true, title: axisTitle(ytitle), afterFit: (s) => { s.width = 64; }, ticks: { font: { size: 13 }, precision: 0 } },
@@ -544,15 +587,15 @@ function makeInspectCharts() {
   plainQChart = register(sharedAxisChart($('plainQChart'), false, 'values'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.bad; d.borderColor = c.bad; });
   maskedChart = register(sharedAxisChart($('maskedChart'), true, 'values per bin'), (ch, c) => {
     const d = ch.data.datasets[0]; d.backgroundColor = c.lock; d.borderColor = c.panel; ch.options.plugins.expected.color = c.text; });
-  const hist = (canvas, xt) => new Chart(canvas, {
+  const hist = (canvas, xt, xs) => new Chart(canvas, {
     type: 'bar', data: { datasets: [{ data: [], borderWidth: 1 }] },
     options: baseOptions({ interaction: { mode: 'nearest', intersect: true }, layout: { padding: { right: 14 } },
-      scales: { x: { type: 'linear', offset: false, title: axisTitle(xt), ticks: { font: { size: 14 }, callback: (v) => Number(v).toFixed(2) } },
+      scales: { x: { type: 'linear', offset: false, title: axisTitle(xt, xs), ticks: { font: { size: 14 }, callback: (v) => Number(v).toFixed(2) } },
         y: { beginAtZero: true, title: axisTitle('values'), afterFit: (s) => { s.width = 64; }, ticks: { precision: 0, font: { size: 13 } } } },
       plugins: { legend: { display: false } } }),
   });
-  rawChart = register(hist($('rawChart'), 'weight value (one hospital, before protection)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.hosp[0]; d.borderColor = c.panel; });
-  aggChart = register(hist($('aggChart'), 'weight value (the combined model)'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.accent; d.borderColor = c.panel; });
+  rawChart = register(hist($('rawChart'), 'weight value (one hospital, before protection)', 'weight value'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.hosp[0]; d.borderColor = c.panel; });
+  aggChart = register(hist($('aggChart'), 'weight value (the combined model)', 'weight value'), (ch, c) => { const d = ch.data.datasets[0]; d.backgroundColor = c.accent; d.borderColor = c.panel; });
 }
 
 async function loadInspect(name, label) {
@@ -739,11 +782,11 @@ function buildTrChart() {
       interaction: { mode: 'nearest', intersect: true },
       layout: { padding: { right: 12, top: 8 } },
       scales: {
-        x: { type: 'logarithmic', min: 8, max: 1500, title: axisTitle('Privacy budget ε of the worst-off hospital: left = stronger privacy'),
+        x: { type: 'logarithmic', min: 8, max: 1500, title: axisTitle('Privacy budget ε of the worst-off hospital: left = stronger privacy', 'Worst-case ε (left = more private)'),
           afterBuildTicks: (ax) => { ax.ticks = ticksAt.map((value) => ({ value })); },
           ticks: { font: { size: 14 }, callback: (v) => (v === NODP_X ? ['no DP', 'noise 0'] : [`ε ${v < 100 ? v.toFixed(1) : Math.round(v)}`, `noise ${noiseOf(v)}`]) } },
         y: { min: Math.floor((Math.min(...ys) - 0.01) * 50) / 50, max: Math.ceil((Math.max(...ys) + 0.01) * 50) / 50,
-          title: axisTitle('Accuracy (mean of 5 seeds, ±1 std)'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
+          title: axisTitle('Accuracy (mean of 5 seeds, ±1 std)', 'Accuracy'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } },
       },
       plugins: { legend: { display: false }, tooltip: { callbacks: {
         title: () => '',
@@ -811,7 +854,7 @@ async function boot() {
   }));
   jobs.push(getJSON('/api/replays').then((list) => {
     const sel = $('replaySel'); sel.innerHTML = '';
-    list.forEach((r) => { const o = document.createElement('option'); o.value = r.name; o.textContent = r.kind === 'replay' ? `${r.name} (saved recording)` : `${r.name} (your earlier run)`; sel.appendChild(o); });
+    list.forEach((r) => { const o = document.createElement('option'); o.value = r.name; o.textContent = replayLabel(r); sel.appendChild(o); });
   }).catch(() => {}));
   let attached = false;
   try { attached = await attachCurrent(); } catch (e) { /* no run to attach */ }

@@ -105,7 +105,13 @@ main { max-width: 1520px; margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
 .rail-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .rail .fld small, .rail fieldset small { font-size: .8rem; }
 .console { display: flex; flex-direction: column; gap: var(--sp-4); }
-.panels { min-width: 0; }
+.panels { min-width: 0; container-type: inline-size; }
+/* the panel column is ~1000 px at 1440, ~850 at 1280, ~670 at 1100 (rail beside it) */
+/* .panels prefix: container queries add no specificity, and .grid2/.grid4 are defined further down */
+@container (max-width: 960px) { .panels .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 760px) { .panels .charts-top { grid-template-columns: 1fr; } }
+@container (max-width: 520px) { .panels .grid4 { grid-template-columns: 1fr; } }
+.sl-short { display: none; }
 
 /* ---- panels */
 .panel + .panel { margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--line); }
@@ -321,8 +327,9 @@ ul.warn li::before { content: "!"; position: absolute; left: 0; top: 2px; width:
   .grid4 { grid-template-columns: 1fr; }
   .srow, .rnums { grid-template-columns: 74px 1fr; gap: 6px; }
   .srow .sl { font-size: .8rem; }
+  .srow .sl-long { display: none; } .srow .sl-short { display: inline; }
   .cell { height: 26px; }
-  .rnums .cells span { font-size: .6rem; }
+  .rnums .cells span { font-size: .7rem; }
   .card { padding: var(--sp-3) var(--sp-4); }
   .diagram.wide { display: none; } .diagram.narrow { display: block; }
   .badge { width: 100%; }
