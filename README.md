@@ -84,13 +84,13 @@ build compiles grpcio and cryptography from source.
 
 ### 2b. Python on a laptop (no Docker)
 
-Tested with Python 3.14 on Windows: torch 2.14 (CPU), flwr 1.37.0, opacus 1.6.0, ray 2.58, scikit-learn 1.9, pandas 3.0, fastapi, uvicorn.
-There is no pinned requirements file yet.
+[`requirements.txt`](requirements.txt) pins the versions this repo was tested with (Python 3.14, Windows 11, CPU only).
+Install torch first from the CPU index, so Linux does not pull the multi-GB CUDA build:
 
 ```bash
 python -m venv .venv
-.venv/Scripts/python -m pip install torch --index-url https://download.pytorch.org/whl/cpu   # Linux/macOS: .venv/bin/python
-.venv/Scripts/python -m pip install "flwr[simulation]==1.37.0" opacus==1.6.0 scikit-learn pandas
+.venv/Scripts/python -m pip install torch==2.14.0 --index-url https://download.pytorch.org/whl/cpu   # Linux/macOS: .venv/bin/python
+.venv/Scripts/python -m pip install -r requirements.txt
 ```
 
 | What | Command |
@@ -140,4 +140,8 @@ Each test is a plain script that prints `ALL OK`: `.venv/Scripts/python test_ste
 
 Team **Zero Exposure**. Built with Flower, Opacus, PyTorch, FastAPI and Chart.js; fonts IBM Plex (SIL OFL). Data: Janosi, Steinbrunn,
 Pfisterer and Detrano, *Heart Disease*, UCI Machine Learning Repository (1988).
-`pyproject.toml` declares the Apache-2.0 licence; a `LICENSE` file is not added yet.
+## Licence
+
+Apache License 2.0: see [`LICENSE`](LICENSE). Copyright 2026 Ritik Bhardwaj (Team Zero Exposure).
+Third-party files keep their own licences: Chart.js (MIT) in `dashboard/static/vendor/`, IBM Plex fonts (SIL OFL 1.1,
+`dashboard/static/vendor/fonts/OFL.txt`). The UCI data is not included in this repository.
