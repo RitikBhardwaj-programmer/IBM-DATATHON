@@ -10,6 +10,7 @@ After changing code run `graphify update .`; after changing docs/notes run `/gra
 ## Layout
 - `IBM HACKATHON LEARNING.txt` — learning progress summary (theory done; next is implementation).
 - `step1_flower_fedavg.py` — Step 1: FedAvg, 3 non-IID simulated hospitals. Run with `.venv\Scripts\python.exe`.
+- `docs/BUILDATHON_PLAYBOOK.md` — event playbook for 17-18 Oct: solo 24-hour plan, results to quote (with sources), gotchas by area, LinuxONE day-0 summary, pitch/judging, working with Claude. Update it when a new lesson lands.
 - `artifacts/` — local copies of the three claude.ai artifacts (each `index.html`): Z Datathon Playbook, Corporate AI Circuit, Federated Learning Toolkit.
 - `.venv/` — Python 3.14 venv (torch, flwr, ray, scikit-learn, pandas). Ignored by graphify via `.graphifyignore`.
 
