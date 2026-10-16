@@ -104,8 +104,41 @@ def headline(groups: list[Group]) -> dict[str, Any]:
     }
 
 
+ATTACK_METRICS = ("fed_acc", "honest_acc", "attacker_acc", "mia_auc_update", "mia_auc_global", "mia_adv_update", "mia_adv_global")
+
+
+def load_attack_runs(results_dir: str | Path = "results") -> list[Run]:
+    """Load step 7 runs (attacks); an empty list when the sweep has not been run."""
+    path = Path(results_dir) / "step7_runs.jsonl"
+    if not path.is_file():
+        return []
+    with path.open(encoding="utf-8") as handle:
+        return [json.loads(line) for line in handle if line.strip()]
+
+
+def summarize_attacks(runs: list[Run]) -> list[Group]:
+    """Mean and sample std over seeds for each (attack, agg, secagg, noise, local_epochs) cell of the step 7 sweep."""
+    buckets: dict[tuple[str, str, int, float, int], list[Run]] = {}
+    for run in runs:
+        key = (run["attack"], run["agg"], run["secagg"], run["noise"], run.get("local_epochs", 5))
+        buckets.setdefault(key, []).append(run)
+
+    groups: list[Group] = []
+    for (attack, agg, secagg, noise, epochs), members in sorted(buckets.items()):
+        group: Group = {"attack": attack, "agg": agg, "secagg": secagg, "noise": noise, "local_epochs": epochs,
+                        "n_seeds": len(members), "mean_epsilon_max": _mean_or_none([run["epsilon_max"] for run in members]),
+                        "clipped_rounds": sum(run["clipped_rounds"] for run in members)}
+        for metric in ATTACK_METRICS:
+            values = [run[metric] for run in members]
+            group[f"mean_{metric}"] = _mean_or_none(values)
+            group[f"std_{metric}"] = None if any(v is None for v in values) else _sample_std(values)
+        groups.append(group)
+    return groups
+
+
 def to_json(results_dir: str | Path = "results") -> dict[str, Any]:
-    """Return loaded runs, grouped summaries, and headline values for an API."""
+    """Return loaded runs, grouped summaries, and headline values for an API (plus the step 7 attack cells, if any)."""
     runs = load_runs(results_dir)
     groups = summarize(runs)
-    return _json_safe({"runs": runs, "groups": groups, "headline": headline(groups)})
+    attacks = summarize_attacks(load_attack_runs(results_dir))
+    return _json_safe({"runs": runs, "groups": groups, "headline": headline(groups), "attacks": attacks})

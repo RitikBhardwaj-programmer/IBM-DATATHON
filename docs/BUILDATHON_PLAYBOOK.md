@@ -131,6 +131,10 @@ Do not start a third option. A finished demo with one improvement beats two half
 | Mixed amd64 + s390x | same accuracy (0.7056) and per-hospital accuracy as all-s390x | measured (emulated) | `deploy/LINUXONE.md` |
 | Build cost on s390x | 174 min 35 s under QEMU (grpcio 141 min); image 3.6 GB | measured (emulated) | `deploy/LINUXONE.md` |
 | Native LinuxONE build time | roughly 10-30 min | **estimate** (QEMU commonly 5-15x slower) | `deploy/LINUXONE.md` |
+| Step 7: one label-flipping hospital | honest hospitals 76.3% -> 66.9% (FedAvg, noise 1, SecAgg on or off, 5 seeds) | measured | `results/step7_runs.jsonl` |
+| Step 7: median vs label flip | 71.8% (wins back about half), only possible with SecAgg off; clean median 77.8% vs FedAvg 76.3% | measured | `results/step7_runs.jsonl` |
+| Step 7: boost x10 of an honest update | 77.1%: no harm (it only gives va more weight) | measured | `results/step7_runs.jsonl` |
+| Step 7: membership inference | AUC 49-50% (coin flip) in every config, even no DP; 53.2% ± 2.6 when overfit (50 local epochs, no DP) | measured | `results/step7_runs.jsonl` |
 
 Say "one run" or "mean of 5 seeds" every time. The design review flagged the headline (5-seed mean) next to a single run as a contradiction.
 
@@ -291,6 +295,7 @@ an independent review of step 6 by the planning session (PR #6 merged before it)
 4. **(90 s) Live run.** Dashboard: Start; accuracy climbs toward the centralized line; ε per hospital grows; the stage strip shows setup → share keys → masked upload → unmask.
 5. **(45 s) What the server sees.** The hero strip and panel 2: 273 readable values become noise across 0…2³²; only the sum is recoverable.
 6. **(30 s) Result.** The trade-off chart and the headline number, labelled "mean of 5 seeds".
+6b. **(optional, 45 s) Attacks panel.** One label-flipping hospital costs the others ~9 points; the median wins back half, but only if SecAgg+ is off: a server that cannot see single updates can neither leak them nor catch the liar. Say that the membership attack fails (coin flip) even without DP on this small model.
 7. **(15 s) Limits + next step.** Three limits (6.4) and the Secure Execution / TLS hardening slide.
 
 ### 6.4 Honest limits (say them)
@@ -300,6 +305,7 @@ an independent review of step 6 by the planning session (PR #6 merged before it)
 - The `/runs` volume is the demo's inspector channel; gRPC has no TLS; the dashboard has no login.
 - Values beyond ±8 after scaling are clipped; the run asserts they stay below 8.
 - ε colour bands (<1 strong, 1-10 moderate, >10 weak) are a rule of thumb, not a standard.
+- Step 7: SecAgg+ and robust aggregation exclude each other, so with SecAgg+ on we have no defence against a poisoning hospital (and cannot tell which one cheated). The membership attack fails even without DP, so the demo does not show DP stopping it; at ε ≈ 12 the DP guarantee itself is weak. The boost attack used here amplifies an honest update; a real attacker would boost a harmful one.
 - IBM Z security features (Secure Execution, pervasive encryption, Crypto Express) are **production hardening we did not implement**, unless you implement one during the event.
 
 ### 6.5 Why IBM Z / LinuxONE (honest framing)
@@ -336,6 +342,7 @@ Codex review and Opus visual QA found different classes of bugs (code races vs m
 | 5 (dashboard) | held | Codex built `sweeps.py` in parallel; Codex review: 6 real findings (111.6k ChatGPT tokens); Opus QA: 4 more |
 | 5 (redesign) | held | design-review agent: 0 blockers, 5 High (all fixed); Codex: no regressions (this session's record, 2026-10-10; commits `70844ac`, `127c77a`) |
 | 6 (deploy) | not recorded | PR merged before the planning session's independent check |
+| 7 (attacks) | changed mid-way | Planned as 2 Claude cloud sessions; the user moved it back to the laptop (local data and venv, no install). Opus review: 2 real bugs (attacker = MIA target; headline stuck on a partial sweep), 8 nits, all fixed. The sweep died once when the session ended; `RESUME=1` added |
 
 ### 7.3 Rules for every brief
 - State the **honesty rule**: report what ran and its output; never claim a check passed without running it. (A Codex brief that asked for "best accuracy" produced cherry-picking.)

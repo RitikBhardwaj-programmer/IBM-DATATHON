@@ -71,6 +71,9 @@ with TestClient(server.app) as c:
         {**GOOD, "noise": -0.1}, {**GOOD, "noise": 5.1}, {**GOOD, "noise": "abc"}, {**GOOD, "strategy": "fedsgd"},
         {**GOOD, "rounds": 0}, {**GOOD, "rounds": 31}, {**GOOD, "rounds": 1.5}, {**GOOD, "seed": 100}, {**GOOD, "seed": -1},
         {**GOOD, "secagg": "yes"}, {**GOOD, "extra": 1}, {k: v for k, v in GOOD.items() if k != "noise"},
+        {**GOOD, "attack": "dos"}, {**GOOD, "attacker": 4}, {**GOOD, "attacker": 0},  # 0 = the membership-inference target {**GOOD, "attacker": "3"}, {**GOOD, "agg": "krum"},
+        {**GOOD, "agg": "median"},  # median with SecAgg+ on: refused (median needs the updates SecAgg+ hides)
+        {**GOOD, "agg": "median", "secagg": False, "strategy": "fedprox"},
     ]
     for body in bad:
         r = c.post("/api/runs", json=body)
@@ -109,6 +112,8 @@ with TestClient(server.app) as c:
     rounds = [e for k, e in events if k == "round"]
     assert [e["round"] for e in rounds] == [0, 1, 2, 3], [e["round"] for e in rounds]
     assert kinds.count("baseline") == 1 and kinds.count("inspect_ready") == 1
+    attack = [e for k, e in events if k == "attack"]  # step 7: one membership-inference summary after the last round
+    assert len(attack) == 1 and attack[0]["attack"] == "none" and 0 <= attack[0]["mia_auc_update"] <= 1, attack
     stages = [e for k, e in events if k == "stage"]
     names = ["setup", "share_keys", "collect_masked_vectors", "unmask"]
     for n in names:

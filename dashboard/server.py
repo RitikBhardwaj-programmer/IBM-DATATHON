@@ -1,13 +1,14 @@
-"""Step 5 dashboard backend: FastAPI + SSE. Starts step4_heart_secagg.py as a subprocess and streams what it writes.
+"""Step 5 dashboard backend: FastAPI + SSE. Starts step7_heart_attacks.py as a subprocess and streams what it writes.
 
 Start:  .venv\\Scripts\\python.exe -m dashboard.server        (HOST=127.0.0.1 PORT=8000 by default; set HOST=0.0.0.0 in Docker)
 
 Training code is never imported here: the child process gets EVENTS_FILE / INSPECT_DIR (see step4_heart_secagg.py) and this
 server tails those files. One run at a time. Stop, crash and server shutdown kill the child's whole process tree (Ray workers too).
 
-MODE=sim (default): the child is step4_heart_secagg.py (Flower simulation on Ray, one process).
+MODE=sim (default): the child is step7_heart_attacks.py (Flower simulation on Ray, one process). Step 7 is step 4 plus optional
+attackers (ATTACK, ATTACKER, AGG); with no attack it trains exactly like step 4 and ends with one extra "attack" event (membership test).
 MODE=deploy (step 6, used by deploy/docker-compose.yml): the child is `flwr run --stream` against an already running SuperLink with
-4 SuperNodes (step6_heart_deploy.py). The same files are written, to RUNS_DIR (a volume shared with the other containers).
+4 SuperNodes (step6_heart_deploy.py; it has no attackers, so attack/agg other than none/fedavg are refused). The same files are written, to RUNS_DIR (a volume shared with the other containers).
 Stop = `flwr stop <run id>` + kill the CLI. A deploy run counts as done only if the ServerApp wrote its final `done` event.
 """
 import asyncio
@@ -43,7 +44,7 @@ FLWR_CONNECTION = os.environ.get("FLWR_CONNECTION", "deploy")  # name of the Sup
 FLWR_RUN_ID_RE = re.compile(r"started run (\d+)")
 REPLAYS_DIR = DASH / "replays"
 STATIC_DIR = DASH / "static"
-TRAIN_SCRIPT = ROOT / "step4_heart_secagg.py"
+TRAIN_SCRIPT = ROOT / "step7_heart_attacks.py"
 INSPECT_ROUND = 1
 RUN_ID_RE = re.compile(r"\d{8}-\d{6}-[0-9a-f]{6}")  # ids are generated here; anything else is rejected before touching the disk
 NAME_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")  # always used with fullmatch ($ would accept a trailing newline)
@@ -55,6 +56,17 @@ class Strategy(str, Enum):
     fedprox = "fedprox"
 
 
+class Attack(str, Enum):
+    none = "none"
+    labelflip = "labelflip"
+    boost = "boost"
+
+
+class Agg(str, Enum):
+    fedavg = "fedavg"
+    median = "median"
+
+
 class RunRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     noise: float = Field(ge=0, le=5, strict=True)
@@ -62,6 +74,20 @@ class RunRequest(BaseModel):
     secagg: bool = Field(strict=True)
     rounds: int = Field(default=15, ge=1, le=30, strict=True)
     seed: int = Field(default=0, ge=0, le=99, strict=True)
+    attack: Attack = Attack.none
+    attacker: int = Field(default=3, ge=1, le=3, strict=True)  # hospital 0 (cleveland) is the membership-inference target
+    agg: Agg = Agg.fedavg
+
+
+def request_conflict(req):
+    """Why this combination cannot run, or None. Mirrors step7_heart_attacks.config_error for the fields the UI can set."""
+    if MODE == "deploy" and (req.attack != Attack.none or req.agg != Agg.fedavg):
+        return "attacks and median aggregation run in simulation mode only (the step 6 deployment has no attackers)"
+    if req.agg == Agg.median and req.secagg:
+        return "median aggregation needs each hospital's update in the clear, and SecAgg+ hides exactly that: turn SecAgg+ off"
+    if req.agg == Agg.median and req.strategy != Strategy.fedavg:
+        return "median aggregation replaces the average: use it with strategy fedavg"
+    return None
 
 
 # ---------------------------------------------------------------- process-tree kill
@@ -167,6 +193,8 @@ class RunManager:
                     "NOISE": repr(float(params["noise"])), "NUM_ROUNDS": str(params["rounds"]), "SEED": str(params["seed"]),
                     "EVENTS_FILE": str(run.dir / "events.jsonl"), "INSPECT_DIR": str(run.dir / "insp"),
                     "INSPECT_ROUND": str(INSPECT_ROUND),
+                    "ATTACK": params["attack"], "ATTACKER": str(params["attacker"]), "AGG": params["agg"],
+                    "STEP7_ATTACK_DIR": str(run.dir / "attack"),  # step 7's client->server side channel, kept with the run (no temp dirs)
                 })
                 cmd = [sys.executable, str(TRAIN_SCRIPT)]
             kw = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if sys.platform == "win32" else {"start_new_session": True}
@@ -419,9 +447,12 @@ async def validation_error(_req, exc):
 
 @app.post("/api/runs", status_code=201)
 def start_run(req: RunRequest):
+    conflict = request_conflict(req)
+    if conflict:
+        raise HTTPException(422, conflict)
     try:
-        run = manager.start({"noise": req.noise, "strategy": req.strategy.value, "secagg": req.secagg,
-                             "rounds": req.rounds, "seed": req.seed})
+        run = manager.start({"noise": req.noise, "strategy": req.strategy.value, "secagg": req.secagg, "rounds": req.rounds,
+                             "seed": req.seed, "attack": req.attack.value, "attacker": req.attacker, "agg": req.agg.value})
     except RuntimeError:
         raise HTTPException(409, "a run is already active; stop it first")
     return run.meta()

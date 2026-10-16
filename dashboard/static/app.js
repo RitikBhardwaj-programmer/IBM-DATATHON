@@ -104,7 +104,7 @@ let pendingStop = false, mode = 'live', es = null, replayTimer = null, token = 0
 let DEFAULT_NAMES = ['hospital 1', 'hospital 2', 'hospital 3', 'hospital 4'];   // replaced by the real names (from the recorded run) at boot
 function resetState() {
   Object.assign(S, { phase: 'idle', base: null, hospitals: DEFAULT_NAMES.slice(), rounds: [], nRounds: 0, seen: new Set(), majority: null,
-    plainMode: false, up: 0, down: 0, runId: null, lastStage: null, cells: {}, curRound: {} });
+    plainMode: false, up: 0, down: 0, runId: null, lastStage: null, cells: {}, curRound: {}, attack: null });
 }
 resetState();
 
@@ -115,13 +115,14 @@ function handle(ev) {
     case 'meta': if (ev.params) reflectParams(ev.params); break;
     case 'baseline':
       if (S.base) break;   // an SSE reconnect replays the run from the start: every event is applied once only (see also S.seen in onStage)
-      S.base = ev; S.hospitals = ev.hospitals; S.nRounds = ev.rounds; S.plainMode = !ev.secagg;
+      S.base = ev; S.hospitals = ev.hospitals; S.nRounds = ev.rounds; S.plainMode = !ev.secagg; fillAttackerNames(ev.hospitals);
       loadMajority(ev.seed); refreshInspectLabel();
       buildHospitalCharts(); buildStrip(); setPhase(S.phase === 'preview' ? 'preview' : (mode === 'replay' ? 'replay' : 'running')); break;
     case 'round': S.rounds[ev.round] = ev; if (!S.nRounds) S.nRounds = ev.total_rounds;
       $('srv').textContent = `Round ${ev.round} of ${ev.total_rounds}. Global accuracy ${pct(ev.acc)}.`; break;
     case 'stage': onStage(ev); break;
     case 'inspect_ready': if (S.phase !== 'preview') loadInspect(ev.id, 'live run ' + ev.id); break;
+    case 'attack': S.attack = ev; renderAttackLive(); break;
     case 'done': finish('done'); break;
     case 'stopped': finish('stopped'); break;
     case 'run_error': finish('error', ev); break;
@@ -162,7 +163,8 @@ function setPhase(p, ev) {
   const busy = p === 'starting' || p === 'running' || p === 'replay';
   $('startBtn').disabled = busy; $('stopBtn').disabled = !busy;
   $('startBtn').textContent = mode === 'live' ? 'Start live run' : 'Play replay';
-  $('ctl').querySelectorAll('#liveCtl input, #replayCtl input, #replayCtl select, #modeSeg input').forEach((el) => { el.disabled = busy; });
+  $('ctl').querySelectorAll('#liveCtl input, #liveCtl select, #replayCtl input, #replayCtl select, #modeSeg input').forEach((el) => { el.disabled = busy; });
+  syncAttackCtl();
   ban.hidden = false; ban.className = 'banner';
   if (p === 'starting') {
     ban.classList.add('info');
@@ -193,12 +195,38 @@ function closeStreams() { if (es) { es.close(); es = null; } stopTimers(); token
 function reflectParams(p) {
   if (!p) return;
   if (p.noise !== undefined) { $('noise').value = p.noise; $('noiseOut').textContent = Number(p.noise).toFixed(1); }
-  if (p.strategy) document.querySelector(`input[name=strategy][value=${p.strategy}]`).checked = true;
+  secaggBeforeMedian = null;   // the run's own SecAgg+ setting wins over a remembered one
+  if (p.strategy) document.querySelector(`input[name=strategy][value=${p.agg === 'median' ? 'median' : p.strategy}]`).checked = true;
   if (p.secagg !== undefined) { $('secagg').checked = !!p.secagg; $('secaggOut').textContent = p.secagg ? 'On' : 'Off'; }
   if (p.rounds) $('rounds').value = p.rounds;
   if (p.seed !== undefined) $('seed').value = p.seed;
-  if (p.noise !== undefined && p.strategy) $('kSrc').textContent = `One run (DP noise ${Number(p.noise).toFixed(1)}, ${p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg'}, SecAgg ${p.secagg ? 'on' : 'off'}, seed ${p.seed}), not the 5-seed mean above.`;
+  const attack = p.attack || 'none';   // runs recorded before step 7 have no attack fields
+  document.querySelector(`input[name=attack][value=${attack}]`).checked = true;
+  if (p.attacker !== undefined) $('attacker').value = String(p.attacker);
+  syncAttackCtl();
+  const avg = p.agg === 'median' ? 'Median' : p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg';
+  const atk = attack !== 'none' ? `, ${ATTACK_NAME[attack]} attack by ${S.hospitals[p.attacker] || 'one hospital'}` : '';
+  if (p.noise !== undefined && p.strategy) $('kSrc').textContent = `One run (DP noise ${Number(p.noise).toFixed(1)}, ${avg}, SecAgg ${p.secagg ? 'on' : 'off'}${atk}, seed ${p.seed}), not the 5-seed mean above.`;
 }
+
+// ============================================================ attack controls
+const ATTACK_NAME = { none: 'no', labelflip: 'label-flip', boost: 'boost ×10' };
+let secaggBeforeMedian = null;   // SecAgg+ is restored when the user leaves Median
+function syncAttackCtl() {
+  const median = document.querySelector('input[name=strategy]:checked').value === 'median';
+  const busy = $('startBtn').disabled;
+  if (median && secaggBeforeMedian === null) { secaggBeforeMedian = $('secagg').checked; $('secagg').checked = false; }
+  else if (!median && secaggBeforeMedian !== null) { $('secagg').checked = secaggBeforeMedian; secaggBeforeMedian = null; }
+  $('secaggOut').textContent = $('secagg').checked ? 'On' : 'Off';
+  $('secagg').disabled = busy || median;   // median needs every update in the clear: SecAgg+ cannot be on
+  $('attackerFld').hidden = document.querySelector('input[name=attack]:checked').value === 'none';
+}
+function fillAttackerNames(names) {
+  [...$('attacker').options].forEach((o) => { if (names[Number(o.value)]) o.textContent = names[Number(o.value)]; });
+  const help = $('attackerFld').querySelector('small');
+  if (names[0]) help.textContent = `${names[0]} is not offered: it is the hospital whose patients the server tries to identify.`;
+}
+document.querySelectorAll('input[name=strategy], input[name=attack]').forEach((r) => r.addEventListener('change', syncAttackCtl));
 
 // ============================================================ controls
 $('noise').addEventListener('input', () => { $('noiseOut').textContent = Number($('noise').value).toFixed(1); });
@@ -214,9 +242,11 @@ $('ctl').addEventListener('submit', (e) => { e.preventDefault(); if (mode === 'l
 $('stopBtn').addEventListener('click', stopRun);
 
 async function startLive() {
-  const body = { noise: Math.min(5, Math.max(0, Number($('noise').value))), strategy: document.querySelector('input[name=strategy]:checked').value,
-    secagg: $('secagg').checked, rounds: Math.min(30, Math.max(1, parseInt($('rounds').value, 10) || 15)),
-    seed: Math.min(99, Math.max(0, parseInt($('seed').value, 10) || 0)) };
+  const avg = document.querySelector('input[name=strategy]:checked').value;
+  const body = { noise: Math.min(5, Math.max(0, Number($('noise').value))), strategy: avg === 'median' ? 'fedavg' : avg,
+    secagg: avg === 'median' ? false : $('secagg').checked, rounds: Math.min(30, Math.max(1, parseInt($('rounds').value, 10) || 15)),
+    seed: Math.min(99, Math.max(0, parseInt($('seed').value, 10) || 0)),
+    attack: document.querySelector('input[name=attack]:checked').value, attacker: Number($('attacker').value), agg: avg === 'median' ? 'median' : 'fedavg' };
   $('rounds').value = body.rounds; $('seed').value = body.seed;
   closeStreams(); resetState(); clearPanel1(); clearInspect(); setPhase('starting');
   const my = token; pendingStop = false;
@@ -248,7 +278,7 @@ async function attachCurrent(msg) {
 function attach(runId) {
   const my = token;
   es = new EventSource(`/api/runs/${runId}/events`);
-  for (const name of ['run', 'baseline', 'round', 'stage', 'inspect_ready', 'done', 'stopped', 'run_error']) {
+  for (const name of ['run', 'baseline', 'round', 'stage', 'inspect_ready', 'attack', 'done', 'stopped', 'run_error']) {
     es.addEventListener(name, (m) => {
       if (my !== token) return;
       let obj; try { obj = JSON.parse(m.data); } catch (e) { return; }
@@ -298,7 +328,9 @@ function replayLabel(r) {
   const m = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(r.name), p = r.params;
   const when = m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[4]}:${m[5]}` : r.name;
   if (!p) return `${when} (your earlier run)`;
-  return `${when}: DP noise ${Number(p.noise).toFixed(1)}, ${p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg'}, SecAgg ${p.secagg ? 'on' : 'off'}, ${p.rounds} rounds, seed ${p.seed}`;
+  const avg = p.agg === 'median' ? 'Median' : p.strategy === 'fedprox' ? 'FedProx' : 'FedAvg';
+  const atk = p.attack && p.attack !== 'none' ? `, ${ATTACK_NAME[p.attack]} attack` : '';
+  return `${when}: DP noise ${Number(p.noise).toFixed(1)}, ${avg}, SecAgg ${p.secagg ? 'on' : 'off'}${atk}, ${p.rounds} rounds, seed ${p.seed}`;
 }
 
 // instant, untimed version of the same events: the page opens already populated
@@ -437,6 +469,7 @@ function clearPanel1() {
   ['kRound', 'kAcc', 'kCen', 'kEps', 'kBytes'].forEach((k) => { $(k).textContent = '–'; }); $('kBytesSub').textContent = ''; $('prog').value = 0;
   $('epsNote').hidden = true;
   for (const ch of [accChart, epsChart]) if (ch) { ch.data.datasets.forEach((d) => { d.data = []; }); ch.update('none'); }
+  renderAttackLive();
 }
 
 function scheduleRender() { if (!renderQueued) { renderQueued = true; requestAnimationFrame(() => { renderQueued = false; render(); }); } }
@@ -749,7 +782,9 @@ const whiskerPlugin = { id: 'whiskers', afterDatasetsDraw(chart) {
     if (!d.stds || !chart.isDatasetVisible(i)) return;
     const meta = chart.getDatasetMeta(i); ctx.save(); ctx.strokeStyle = d.borderColor; ctx.lineWidth = 2;
     d.data.forEach((p, k) => {
-      const px = meta.data[k].x, y1 = y.getPixelForValue(p.y - d.stds[k]), y2 = y.getPixelForValue(p.y + d.stds[k]);
+      const v = typeof p === 'number' ? p : p && p.y;   // scatter points are {x, y}; bars are plain numbers (null = no data)
+      if (v === null || v === undefined) return;
+      const px = meta.data[k].x, y1 = y.getPixelForValue(v - d.stds[k]), y2 = y.getPixelForValue(v + d.stds[k]);
       ctx.beginPath(); ctx.moveTo(px, y1); ctx.lineTo(px, y2); ctx.moveTo(px - 5, y1); ctx.lineTo(px + 5, y1); ctx.moveTo(px - 5, y2); ctx.lineTo(px + 5, y2); ctx.stroke();
     });
     ctx.restore();
@@ -832,6 +867,7 @@ function renderSweeps(data) {
     }
   }
   buildTrChart();
+  renderAttacks();
   const tbl = $('trTable'); tbl.textContent = '';
   const mk = (tag, texts, parent) => { const tr = document.createElement('tr'); texts.forEach((t) => { const c = document.createElement(tag); c.textContent = t; tr.appendChild(c); }); parent.appendChild(tr); };
   const th = document.createElement('thead'), tb = document.createElement('tbody'); tbl.append(th, tb);
@@ -840,16 +876,109 @@ function renderSweeps(data) {
     pct(x.mean_fed_acc, 2), '±' + pct(x.std_fed_acc, 2), pct(x.mean_central_acc, 2), String(x.n_seeds)], tb));
 }
 
+// ============================================================ panel 4: attacks
+// This run: the "attack" event arrives once, after the last round (the membership test runs after training).
+function renderAttackLive() {
+  const a = S.attack, set = (id, txt, cls) => { $(id).textContent = txt; $(id).className = cls || ''; };
+  if (!a) {
+    ['miaUpd', 'miaGlob', 'honAcc', 'atkAcc'].forEach((k) => set(k, '–'));
+    $('miaSub').textContent = 'The server\'s guess, after training, for one hospital\'s patients. 50% = a coin flip (the attacker learns nothing).';
+    $('atkAccL').textContent = 'Malicious hospital';
+    $('poisonNote').textContent = S.phase === 'running' || S.phase === 'starting' ? 'Appears when the run finishes.' : 'Start a live run to fill these cards (recordings made before the attack step have none).';
+    return;
+  }
+  const auc = (v) => (v === null ? ['–', ''] : [`AUC ${pct(v)}`, v >= 0.65 ? 'hi' : '']);   // ~3 sd above chance for 76 vs 76 patients
+  set('miaUpd', ...auc(a.mia_auc_update)); set('miaGlob', ...auc(a.mia_auc_global));
+  $('miaSub').textContent = `The server's guess for ${a.mia_hospital_name}'s patients: ${a.mia_n} training vs ${a.mia_n} held-out patients. 50% = a coin flip. ` +
+    'With this few patients, one run moves by about ±5 points by chance: trust the seed means below, not one run.';
+  set('honAcc', pct(a.honest_acc)); set('atkAcc', pct(a.attacker_acc));
+  const avg = a.agg === 'median' ? 'the median' : 'the average';
+  if (a.attack === 'none') {
+    $('atkAccL').textContent = `${a.attacker_name} (honest in this run)`;
+    $('poisonNote').textContent = 'No attacker in this run: this is the clean reference for the same settings.';
+  } else {
+    $('atkAccL').textContent = `${a.attacker_name} (the attacker, on its own true labels)`;
+    const clip = a.clipped_rounds ? ` SecAgg+ clipped its update in ${a.clipped_rounds} round(s): an accident of the number format, not a defence (a real attacker controls its own client).` : '';
+    $('poisonNote').textContent = `${a.attacker_name} ran the ${ATTACK_NAME[a.attack]} attack every round; the server used ${avg}` +
+      (a.secagg ? ', with SecAgg+ on, so it could not see which hospital cheated.' : ', with SecAgg+ off.') + clip;
+  }
+}
+
+// Sweep: honest-hospital accuracy per defence (group) and attack (bar), at one DP noise level.
+const DEFENCES = [{ agg: 'fedavg', secagg: 1, label: ['FedAvg', '+ SecAgg+'] }, { agg: 'fedavg', secagg: 0, label: ['FedAvg', 'no SecAgg+'] },
+  { agg: 'median', secagg: 0, label: ['Median', 'no SecAgg+'] }];
+const ATTACKS = [{ key: 'none', label: 'No attacker' }, { key: 'labelflip', label: 'Label flip' }, { key: 'boost', label: 'Boost ×10' }];
+let atkChart = null;
+const atkCell = (attack, d, noise) => (sweeps && sweeps.attacks || []).find((g) => g.attack === attack && g.agg === d.agg && g.secagg === d.secagg
+  && g.noise === noise && g.local_epochs === 5);
+function atkNoise() { return Number(document.querySelector('input[name=atkNoise]:checked').value); }
+
+function buildAtkChart() {
+  if (atkChart) unregister(atkChart);
+  const noise = atkNoise();
+  const datasets = ATTACKS.map((a) => {
+    const cells = DEFENCES.map((d) => atkCell(a.key, d, noise));
+    return { label: a.label, atk: a.key, data: cells.map((g) => (g ? g.mean_honest_acc : null)), cells,
+      stds: cells.map((g) => (g ? g.std_honest_acc : 0)), borderWidth: 2 };
+  });
+  atkChart = register(new Chart($('atkChart'), {
+    type: 'bar', data: { labels: DEFENCES.map((d) => d.label), datasets },
+    options: baseOptions({
+      interaction: { mode: 'nearest', intersect: true },
+      scales: { x: { ticks: { font: { size: 14 } } },
+        y: { min: 0, max: 1, title: axisTitle('Honest hospitals\' accuracy', 'Accuracy'), ticks: { callback: (v) => pct(v, 0), font: { size: 14 } } } },
+      plugins: { legend: { display: true, position: 'top', labels: { font: { size: 15 }, boxWidth: 14, padding: 14 } },
+        tooltip: { callbacks: { title: () => '', label: (c) => { const g = c.dataset.cells[c.dataIndex]; if (!g) return `${c.dataset.label}: no data`;
+          return [`${c.dataset.label}, ${c.label.join(' ')}, noise ${g.noise}`, `honest accuracy ${pct(g.mean_honest_acc, 2)} ± ${pct(g.std_honest_acc, 2)} (${g.n_seeds} seeds)`]; } } } },
+    }),
+    plugins: [whiskerPlugin],
+  }), (ch, c) => ch.data.datasets.forEach((d) => {
+    const col = d.atk === 'none' ? c.accent : d.atk === 'labelflip' ? c.warn : c.bad;
+    d.borderColor = col; d.backgroundColor = d.atk === 'none' ? col : col + '99';
+  }));
+}
+
+function renderAttacks() {
+  const gs = (sweeps && sweeps.attacks) || [];
+  if (!gs.length) { $('atkHeadline').innerHTML = '<b>No attack sweep yet.</b><small>Run <code>run_step7_sweep.sh</code> to fill this chart.</small>'; return; }
+  buildAtkChart();
+  const f = (attack, d) => atkCell(attack, d, 1);
+  const clean = f('none', DEFENCES[0]), flip = f('labelflip', DEFENCES[0]), boost = f('boost', DEFENCES[0]), medFlip = f('labelflip', DEFENCES[2]), medBoost = f('boost', DEFENCES[2]);
+  const wins = gs.filter((g) => g.attack === 'none' && g.local_epochs > 5).sort((a, b) => b.local_epochs - a.local_epochs)[0];
+  const base = gs.find((g) => g.attack === 'none' && g.agg === 'fedavg' && g.secagg === 0 && g.noise === 0 && g.local_epochs === 5);
+  if (clean && flip && boost && medFlip && medBoost) {
+    $('atkHeadline').innerHTML = `<b>One label-flipping hospital out of four: honest accuracy ${pct(clean.mean_honest_acc)} → ${pct(flip.mean_honest_acc)} with FedAvg + SecAgg+.
+      The median wins back part of it (${pct(medFlip.mean_honest_acc)}), but only with SecAgg+ off.</b>` +
+      `<small>DP noise 1, mean of ${clean.n_seeds} seeds, from <code>results/step7_runs.jsonl</code>. Boost ×10 does not hurt (${pct(boost.mean_honest_acc)}; median ${pct(medBoost.mean_honest_acc)}):
+      the attacker amplifies an honest update, which only gives it more weight. A boost harms when it amplifies a harmful direction.` +
+      (base && wins ? ` Membership inference on one hospital's own update, no DP: AUC ${pct(base.mean_mia_auc_update)} (coin flip) with 5 local epochs, ${pct(wins.mean_mia_auc_update)} when it overfits (${wins.local_epochs} epochs).
+      This 273-weight model remembers too little for the attack to work, so the sweep cannot show what DP adds against it.` : '') + '</small>';
+  } else {
+    $('atkHeadline').innerHTML = `<b>Attack sweep incomplete:</b> ${gs.length} of the expected cells so far.<small>The chart shows what is there; the headline needs every noise-1 cell.</small>`;
+  }
+  const seeds = [...new Set(gs.filter((g) => g.local_epochs === 5).map((g) => g.n_seeds))].sort();
+  $('atkCap').textContent = `Mean of ${seeds.length === 1 ? seeds[0] : seeds.join(' to ')} seed${seeds.join() === '1' ? '' : 's'} per bar, whiskers ±1 std. Each group is one defence; each bar is one attack.`;
+  const tbl = $('atkTable'); tbl.textContent = '';
+  const mk = (tag, texts, parent) => { const tr = document.createElement('tr'); texts.forEach((t) => { const c = document.createElement(tag); c.textContent = t; tr.appendChild(c); }); parent.appendChild(tr); };
+  const th = document.createElement('thead'), tb = document.createElement('tbody'); tbl.append(th, tb);
+  mk('th', ['attack', 'aggregation', 'SecAgg', 'noise', 'local epochs', 'ε (max)', 'honest acc', 'std', 'attacker acc', 'MIA AUC update', 'MIA AUC global', 'seeds'], th);
+  const opt = (v, d = 1) => (v === null || v === undefined ? '–' : pct(v, d));
+  gs.forEach((g) => mk('td', [g.attack, g.agg, g.secagg ? 'on' : 'off', String(g.noise), String(g.local_epochs), g.mean_epsilon_max === null ? '∞' : g.mean_epsilon_max.toFixed(1),
+    opt(g.mean_honest_acc, 2), '±' + opt(g.std_honest_acc, 2), opt(g.mean_attacker_acc), opt(g.mean_mia_auc_update), opt(g.mean_mia_auc_global), String(g.n_seeds)], tb));
+}
+$('atkNoiseSeg').addEventListener('change', () => { if (sweeps && sweeps.attacks && sweeps.attacks.length) buildAtkChart(); });
+
 // ============================================================ boot
 async function boot() {
   makeAccChart(); makeEpsChart(); makeInspectCharts();
   restyleAll();
   if (document.fonts) document.fonts.load(`400 15px ${FONT}`).then(() => document.fonts.ready).then(restyleAll).catch(() => {});   // canvas text needs Plex loaded before it is drawn
   renderHeroStrip(null);
-  try { const g = (await getJSON('/api/replays/golden_run')).events.find((e) => e.type === 'baseline'); if (g) { DEFAULT_NAMES = g.hospitals; S.hospitals = g.hospitals.slice(); } } catch (e) { /* keep placeholders */ }
+  try { const g = (await getJSON('/api/replays/golden_run')).events.find((e) => e.type === 'baseline'); if (g) { DEFAULT_NAMES = g.hospitals; S.hospitals = g.hospitals.slice(); fillAttackerNames(g.hospitals); } } catch (e) { /* keep placeholders */ }
   const jobs = [];
   jobs.push(getJSON('/api/sweeps').then(renderSweeps).catch((e) => {
     $('hlMain').textContent = 'Sweep results unavailable.'; $('hlSub').textContent = e.message; $('trHeadline').textContent = 'Sweep results unavailable: ' + e.message;
+    $('atkHeadline').textContent = 'Attack sweep unavailable: ' + e.message;
   }));
   jobs.push(getJSON('/api/replays').then((list) => {
     const sel = $('replaySel'); sel.innerHTML = '';

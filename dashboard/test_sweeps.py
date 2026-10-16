@@ -35,7 +35,24 @@ def main() -> None:
     assert json.loads(encoded)["groups"]
     summary = payload["headline"]
     assert all(math.isfinite(summary[key]) for key in ("gap_points", "relative_gap_pct", "epsilon"))
+    assert isinstance(payload["attacks"], list)  # empty until run_step7_sweep.sh has written results/step7_runs.jsonl
+    check_attack_summary()
     print("ALL OK")
+
+
+def check_attack_summary() -> None:
+    """summarize_attacks on hand-made rows: one cell per configuration, mean/std over seeds, None where MIA was off."""
+    def row(seed, honest, auc):
+        return {"attack": "labelflip", "agg": "fedavg", "secagg": 1, "noise": 1.0, "local_epochs": 5, "seed": seed, "epsilon_max": 12.0,
+                "clipped_rounds": 0, "fed_acc": 0.7, "honest_acc": honest, "attacker_acc": 0.5,
+                "mia_auc_update": auc, "mia_auc_global": auc, "mia_adv_update": auc, "mia_adv_global": auc}
+    cells = sweeps.summarize_attacks([row(0, 0.6, 0.5), row(1, 0.8, 0.7), {**row(2, 0.7, None), "noise": 2.0}])
+    assert len(cells) == 2
+    one = next(c for c in cells if c["noise"] == 1.0)
+    assert one["n_seeds"] == 2 and abs(one["mean_honest_acc"] - 0.7) < 1e-12 and abs(one["std_honest_acc"] - 0.1414213562) < 1e-9
+    assert abs(one["mean_mia_auc_update"] - 0.6) < 1e-12
+    two = next(c for c in cells if c["noise"] == 2.0)
+    assert two["mean_mia_auc_update"] is None and two["std_honest_acc"] == 0.0
 
 
 if __name__ == "__main__":
