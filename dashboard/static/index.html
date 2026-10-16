@@ -24,6 +24,7 @@
       <a href="#live">Live run</a>
       <a href="#sees">Server view</a>
       <a href="#tradeoff">Trade-off</a>
+      <a href="#attacks">Attacks</a>
       <a href="#how">Limits</a>
     </nav>
     <button id="themeBtn" class="btn ghost" type="button">Theme</button>
@@ -102,8 +103,23 @@
             <legend>Averaging</legend>
             <label><input type="radio" name="strategy" value="fedavg" checked><span>FedAvg</span></label>
             <label><input type="radio" name="strategy" value="fedprox"><span>FedProx</span></label>
-            <small>FedAvg = plain average. FedProx = average with a leash that keeps each hospital close to the global model.</small>
+            <label><input type="radio" name="strategy" value="median"><span>Median</span></label>
+            <small>FedAvg = plain average. FedProx = average with a leash that keeps each hospital close to the global model.
+              Median = per-weight middle value (<em>robust aggregation</em>): one outlier cannot drag it. It needs every update in the clear, so it turns SecAgg+ off.</small>
           </fieldset>
+          <fieldset class="seg" id="attackSeg">
+            <legend>Attacker</legend>
+            <label><input type="radio" name="attack" value="none" checked><span>None</span></label>
+            <label><input type="radio" name="attack" value="labelflip"><span>Label flip</span></label>
+            <label><input type="radio" name="attack" value="boost"><span>Boost ×10</span></label>
+            <small>One hospital cheats every round (<em>poisoning</em>). Label flip = it trains on swapped labels (sick ↔ healthy).
+              Boost = it multiplies its update by 10 to drag the average. The server also tries to tell members from non-members (<em>membership inference</em>) in every run.</small>
+          </fieldset>
+          <label class="fld" id="attackerFld">
+            <span class="fld-l">Malicious hospital</span>
+            <select id="attacker"><option value="1">hospital 2</option><option value="2">hospital 3</option><option value="3" selected>hospital 4</option></select>
+            <small>Hospital 1 is not offered: it is the one whose patients the server tries to identify.</small>
+          </label>
           <div class="pair">
             <label class="fld">
               <span class="fld-l">Rounds</span>
@@ -285,7 +301,60 @@
         </div>
       </section>
 
-      <!-- ===================================================== 4. HOW IT WORKS + LIMITS -->
+      <!-- ===================================================== 4. ATTACKS -->
+      <section id="attacks" class="panel" aria-labelledby="atkH">
+        <div class="panel-head">
+          <h2 id="atkH">Attacks: who can do harm, and what stops them</h2>
+          <p>Two attackers, one per direction of threat. A <b>curious server</b> reads what arrives and guesses which patients were used in training
+            (<em>membership inference</em>). A <b>malicious hospital</b> sends a poisoned update (<em>poisoning</em>).
+            The defence that blinds the server (SecAgg+) is the same thing that stops it catching the liar.</p>
+        </div>
+        <div class="grid2 tight">
+          <div class="card">
+            <h3>This run: membership inference</h3>
+            <p class="sub" id="miaSub">The server's guess, after training, for one hospital's patients. 50% = a coin flip (the attacker learns nothing).</p>
+            <dl class="mia" id="miaBox">
+              <div><dt>From that hospital's own update <small>(what the server sees with SecAgg+ off)</small></dt><dd id="miaUpd">–</dd></div>
+              <div><dt>From the global model only <small>(all it gets with SecAgg+ on)</small></dt><dd id="miaGlob">–</dd></div>
+            </dl>
+            <details>
+              <summary>How the attack works</summary>
+              <p>A model is more confident on patients it trained on, like a student who memorised the exam questions. The attack scores each patient
+                by the model's error on them (<em>loss</em>): low error = “was in training”. AUC (<em>area under the ROC curve</em>) is the chance it ranks
+                a real training patient above an unseen one. We test the same number of training and held-out patients, so 50% means no information.</p>
+            </details>
+          </div>
+          <div class="card">
+            <h3>This run: poisoning</h3>
+            <p class="sub" id="poisonSub">Accuracy of the honest hospitals, on their own test patients.</p>
+            <dl class="mia" id="poisonBox">
+              <div><dt>Honest hospitals (mean)</dt><dd id="honAcc">–</dd></div>
+              <div><dt id="atkAccL">Malicious hospital</dt><dd id="atkAcc">–</dd></div>
+            </dl>
+            <p class="sub" id="poisonNote"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hl-card" id="atkHeadline" aria-live="polite">Loading the attack sweep…</div>
+          <fieldset class="seg" id="atkNoiseSeg">
+            <legend>DP noise</legend>
+            <label><input type="radio" name="atkNoise" value="0"><span>0 (no DP)</span></label>
+            <label><input type="radio" name="atkNoise" value="1" checked><span>1</span></label>
+            <label><input type="radio" name="atkNoise" value="2"><span>2</span></label>
+          </fieldset>
+          <figure class="chart-card">
+            <figcaption><h3>Honest hospitals' accuracy under each attack</h3>
+              <p id="atkCap">Mean over seeds, whiskers ±1 std. Each group is one defence; each bar is one attack.</p></figcaption>
+            <div class="chart-box"><canvas id="atkChart" role="img" aria-label="Honest-hospital accuracy per defence and attack"></canvas></div>
+          </figure>
+          <details>
+            <summary>Data table (same numbers, plus membership inference)</summary>
+            <div class="table-wrap"><table id="atkTable"></table></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- ===================================================== 5. HOW IT WORKS + LIMITS -->
       <section id="how" class="panel" aria-labelledby="howH">
         <div class="panel-head">
           <h2 id="howH">How it works, and what it does not do</h2>

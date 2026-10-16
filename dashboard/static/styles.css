@@ -239,6 +239,15 @@ progress::-moz-progress-bar { background: var(--model); border-radius: 4px; }
 .explain { margin: var(--sp-3) 0 0; padding-left: 1.3rem; display: grid; gap: var(--sp-2); }
 .explain li::marker { color: var(--model); font-weight: 700; }
 
+/* ---- panel 4 (attacks) */
+.mia { display: grid; gap: var(--sp-3); margin: var(--sp-3) 0; }
+.mia > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--line); }
+.mia dt { font-weight: 600; font-size: .95rem; }
+.mia dt small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; }
+.mia dd { margin: 0; font-family: var(--mono); font-size: 1.5rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mia dd.hi { color: var(--bad); }
+#atkNoiseSeg { margin: var(--sp-4) 0 var(--sp-2); }
+
 /* ---- panel 3 */
 .hl-card { font-size: 1.05rem; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-s); background: var(--surface-2); border-left: 4px solid var(--model); }
 .hl-card b { font-weight: 600; }
