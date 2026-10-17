@@ -1,0 +1,27 @@
+# Demo fallback ONLY: the step 6 federation without TLS (plaintext gRPC, as before 2026-10-17). Use it if TLS fails on the event VM:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.insecure.yml up
+# The dashboard's flwr CLI then uses deploy/flwr_home_insecure/config.toml. Say "TLS off" if you demo with this.
+# `depends_on: !reset` / `!override` drop the wait for the `certs` service, so the fallback starts even when certificate generation is what broke
+# (needs Docker Compose >= 2.24). The `certs` service itself may still run and fail; nothing depends on it here.
+
+services:
+  superlink:
+    command: >
+      flower-superlink --insecure --disable-runtime-dependency-installation
+      --host 0.0.0.0 --port 9093 --fleet-api-address 0.0.0.0:9092
+    depends_on: !reset []
+  supernode-0:
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=0 num-partitions=4"
+    depends_on: !override {superlink: {condition: service_started}}
+  supernode-1:
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=1 num-partitions=4"
+    depends_on: !override {superlink: {condition: service_started}}
+  supernode-2:
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=2 num-partitions=4"
+    depends_on: !override {superlink: {condition: service_started}}
+  supernode-3:
+    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=3 num-partitions=4"
+    depends_on: !override {superlink: {condition: service_started}}
+  dashboard:   # /flwr_home is also Flower's writable cache (owned by ubuntu), so swap the config file in place
+    command: sh -c "cp /app/deploy/flwr_home_insecure/config.toml /flwr_home/config.toml && python -m dashboard.server"
+    depends_on: !override {superlink: {condition: service_started}}

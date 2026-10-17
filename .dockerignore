@@ -8,5 +8,7 @@
 !dashboard/
 !results/
 !deploy/flwr_home/
+!deploy/flwr_home_insecure/
+!deploy/gen_certs.py
 dashboard/runs/
 **/__pycache__/

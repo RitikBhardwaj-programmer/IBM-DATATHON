@@ -38,8 +38,11 @@ slower than native for compiles; not measured). Start the build as soon as you h
 ### Start and open the dashboard
 ```bash
 docker compose -f deploy/docker-compose.yml up -d
-docker compose -f deploy/docker-compose.yml ps          # superlink + 4 supernodes + dashboard Up
+docker compose -f deploy/docker-compose.yml ps -a       # certs Exited (0); superlink + 4 supernodes + dashboard Up
 ```
+TLS is on: the one-shot `certs` service makes the demo CA and SuperLink certificate on the first `up` (volumes `tls-server`, `tls-ca`).
+If a SuperNode keeps retrying and never joins, check `docker compose logs certs superlink supernode-0`. Plaintext fallback (say "TLS off"):
+`docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.insecure.yml up -d`.
 The dashboard listens on `127.0.0.1:8000` of the VM only (it has no login). From your laptop: `ssh -L 8000:127.0.0.1:8000 <user>@<vm>`, then open
 http://127.0.0.1:8000. Set `DASHBOARD_PORT=8001` if 8000 is taken.
 
@@ -48,6 +51,8 @@ http://127.0.0.1:8000. Set `DASHBOARD_PORT=8001` if 8000 is taken.
 docker compose -f deploy/docker-compose.yml exec superlink uname -m                                    # s390x
 docker compose -f deploy/docker-compose.yml exec superlink python -c "import sys,platform;print(platform.machine(), sys.byteorder)"   # s390x big
 docker compose -f deploy/docker-compose.yml exec supernode-1 ls /data                                  # only processed.hungarian.data
+docker compose -f deploy/docker-compose.yml exec supernode-1 ls /tls                                   # only ca.crt (no private key)
+docker compose -f deploy/docker-compose.yml exec superlink python -c "import grpc;c=grpc.insecure_channel('localhost:9092');grpc.channel_ready_future(c).result(timeout=5)"   # fails: plaintext refused
 ```
 The inspector files written by an s390x container are big-endian: `head -c 100 /runs/<id>/insp/masked.npy` shows `'descr': '>u4'`.
 
@@ -108,9 +113,11 @@ Not verified: speed on real LinuxONE; behaviour of the protobuf C extension on r
 
 ## 5. What to say to the judges (honest version)
 - The federated training runs as five separate containers on an IBM LinuxONE (s390x, big-endian) VM; hospital data never leaves its container;
-  updates are masked with SecAgg+ and the training is differentially private (Opacus).
+  updates are masked with SecAgg+, every link between containers is TLS-encrypted, and the training is differentially private (Opacus).
 - Limits: the SuperLink container also holds all four files because its ServerApp computes the non-private baselines and the pooled test score
-  (evaluation only); the `/runs` volume is the demo's inspector channel; gRPC is insecure (no TLS) and the dashboard has no login; SecAgg+ hides one
+  (evaluation only); the `/runs` volume is the demo's inspector channel; TLS uses a self-made demo CA and authenticates only the SuperLink
+  (the CA file is public, so TLS alone does not stop an unknown client from joining as a SuperNode; Flower's `--enable-supernode-auth` would,
+  and we do not use it); the dashboard has no login; SecAgg+ hides one
   update only inside the sum (3 colluding parties out of 4 reveal the fourth); the QEMU rehearsal says nothing about LinuxONE speed.
 
 ## 6. Mixed-architecture rehearsal (laptop only)

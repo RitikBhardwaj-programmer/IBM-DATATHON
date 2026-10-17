@@ -8,6 +8,13 @@
 #                 score for the dashboard. Evaluation only; a production SuperLink would not hold patient data.
 #   dashboard   : all four files (read-only) only for the per-hospital majority-class reference line in the charts.
 # /runs is a volume shared by all containers: the demo's inspector channel (events, plain/masked vectors). A real hospital would not share it.
+#
+# TLS: every link that leaves a container is encrypted (SuperNode -> SuperLink Fleet API, dashboard/flwr CLI -> Control API), and so is
+# the SuperLink's Runtime API to its own ServerApp process. Plaintext stays only inside each SuperNode container (SuperNode -> its own
+# ClientApp on loopback). The one-shot `certs` service makes a demo CA + SuperLink certificate on the first `up` (deploy/gen_certs.py)
+# in volume tls-ca-key (CA private key: only `certs` mounts it), then copies the server cert + key to tls-server (SuperLink only) and
+# ca.crt to tls-ca (SuperNodes, dashboard). `docker compose down -v` deletes them; the next `up` makes new ones. Plaintext fallback:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.insecure.yml up
 x-image: &image
   image: ${FL_IMAGE:-zero-exposure-fl:local}   # FL_IMAGE=zero-exposure-fl:s390x docker compose up --no-build: use a pre-built image
   init: true   # a tiny init as PID 1 reaps the finished/killed ServerApp and ClientApp processes (no zombies after Stop)
@@ -19,57 +26,82 @@ x-supernode-env: &supernode-env
   ALLOW_MISSING_DATA: "1"   # step3_heart_dp.py: tolerate the 3 other hospitals' files being absent
   DATA_DIR: /data
 
+x-after-superlink: &after-superlink
+  certs: {condition: service_completed_successfully}
+  superlink: {condition: service_started}
+
 services:
+  certs:
+    <<: *image
+    user: root   # new named volumes are owned by root; server.key is then handed to the ubuntu user (uid 1000) that runs the SuperLink
+    command: >
+      sh -c "python deploy/gen_certs.py --out /tls-ca-key
+      && install -m 644 /tls-ca-key/server.pem /tls-ca-key/ca.crt /tls-server/
+      && install -m 600 -o ubuntu -g ubuntu /tls-ca-key/server.key /tls-server/
+      && install -m 644 /tls-ca-key/ca.crt /tls-ca/"
+    volumes:
+      - tls-ca-key:/tls-ca-key
+      - tls-server:/tls-server
+      - tls-ca:/tls-ca
+    restart: "no"
+
   superlink:
     <<: *image
     command: >
-      flower-superlink --insecure --disable-runtime-dependency-installation
-      --host 0.0.0.0 --port 9093 --fleet-api-address 0.0.0.0:9092
+      flower-superlink --ssl-ca-certfile /tls/ca.crt --ssl-certfile /tls/server.pem --ssl-keyfile /tls/server.key
+      --disable-runtime-dependency-installation --host 0.0.0.0 --port 9093 --fleet-api-address 0.0.0.0:9092
     environment:
       DATA_DIR: /data
     volumes:
       - ../data/heart_disease:/data:ro
       - runs:/runs
+      - tls-server:/tls:ro
+    depends_on:
+      certs: {condition: service_completed_successfully}
     restart: unless-stopped
 
   supernode-0:
     <<: *image
-    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=0 num-partitions=4"
+    command: flower-supernode --root-certificates /tls/ca.crt --superlink superlink:9092 --node-config "partition-id=0 num-partitions=4"
     environment: *supernode-env
     volumes:
       - ../data/heart_disease/processed.cleveland.data:/data/processed.cleveland.data:ro
       - runs:/runs
-    depends_on: [superlink]
+      - tls-ca:/tls:ro
+    depends_on: *after-superlink
     restart: unless-stopped
 
   supernode-1:
     <<: *image
-    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=1 num-partitions=4"
+    command: flower-supernode --root-certificates /tls/ca.crt --superlink superlink:9092 --node-config "partition-id=1 num-partitions=4"
     environment: *supernode-env
     volumes:
       - ../data/heart_disease/processed.hungarian.data:/data/processed.hungarian.data:ro
       - runs:/runs
-    depends_on: [superlink]
+      - tls-ca:/tls:ro
+    depends_on: *after-superlink
     restart: unless-stopped
 
   supernode-2:
     <<: *image
-    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=2 num-partitions=4"
+    command: flower-supernode --root-certificates /tls/ca.crt --superlink superlink:9092 --node-config "partition-id=2 num-partitions=4"
     environment: *supernode-env
     volumes:
       - ../data/heart_disease/processed.switzerland.data:/data/processed.switzerland.data:ro
       - runs:/runs
-    depends_on: [superlink]
+      - tls-ca:/tls:ro
+    depends_on: *after-superlink
     restart: unless-stopped
 
   supernode-3:
     <<: *image
-    command: flower-supernode --insecure --superlink superlink:9092 --node-config "partition-id=3 num-partitions=4"
+    command: flower-supernode --root-certificates /tls/ca.crt --superlink superlink:9092 --node-config "partition-id=3 num-partitions=4"
     environment: *supernode-env
     volumes:
       - ../data/heart_disease/processed.va.data:/data/processed.va.data:ro
       - runs:/runs
-    depends_on: [superlink]
+      - tls-ca:/tls:ro
+    depends_on: *after-superlink
     restart: unless-stopped
 
   dashboard:
@@ -84,8 +116,12 @@ services:
     volumes:
       - ../data/heart_disease:/app/data/heart_disease:ro
       - runs:/runs
-    depends_on: [superlink]
+      - tls-ca:/tls:ro   # the flwr CLI it runs verifies the SuperLink with this CA (deploy/flwr_home/config.toml)
+    depends_on: *after-superlink
     restart: unless-stopped
 
 volumes:
   runs:
+  tls-ca-key:
+  tls-server:
+  tls-ca:

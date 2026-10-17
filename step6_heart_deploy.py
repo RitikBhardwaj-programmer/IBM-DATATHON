@@ -14,7 +14,7 @@ Start (see run_step6_local.py for a native launcher, deploy/docker-compose.yml f
     flwr run . local --run-config "noise=1.0 strategy=\\"fedprox\\" secagg=1 rounds=3"
 The last log line of the ServerApp is `RESULT {json}` (same format as step 4).
 Demo limits (be honest): the ServerApp process holds all four files to compute the non-private baselines and the pooled test score
-(evaluation only, never used for training). Real SuperNodes hold only their own file. Transport is insecure gRPC (no TLS) in the demo.
+(evaluation only, never used for training). Real SuperNodes hold only their own file. Transport is TLS (deploy/gen_certs.py; see docker-compose.yml and run_step6_local.py).
 """
 import json
 import time
