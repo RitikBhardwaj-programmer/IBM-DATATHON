@@ -333,7 +333,7 @@ an independent review of step 6 by the planning session (PR #6 merged before it)
 
 ### 6.6 Submission checklist
 - [ ] Working demo: live URL or screen recording of the LinuxONE run (record it on 17 Oct evening as a backup)
-- [ ] Repo link (public or shared with judges) with a `README.md` that says how to run it (**the repo has no README yet**: write one)
+- [ ] Repo link (public or shared with judges); `README.md` says how to run it (added 2026-10-11; update its results if you add new ones)
 - [ ] Short description (reuse the abstract)
 - [ ] Pitch deck: problem, beneficiary, approach, LinuxONE proof, result number, limits, next steps
 - [ ] Submitted before 21:00 IST on 18 Oct
@@ -383,5 +383,5 @@ Codex review and Opus visual QA found different classes of bugs (code races vs m
 - [ ] Every member booked for the 16 Oct session
 - [ ] Run `test_step6_deploy.py` once on `main` (~15 min) and record the result
 - [ ] Pitch deck skeleton and the abstract text ready to paste
-- [ ] Repo `README.md` (problem, how to run on the laptop and on LinuxONE, results, limits)
+- [x] Repo `README.md` (problem, how to run on the laptop and on LinuxONE, results, limits)
 - [ ] Laptop: amd64 image built, golden replay checked, data files copied to a USB stick
