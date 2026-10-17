@@ -2,3 +2,6 @@
 __pycache__/
 graphify-out/
 artifacts/x-news-dossier/
+# Private, untracked folders: never index them into the committed graph
+team/
+docs/linuxone_session/
