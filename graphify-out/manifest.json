@@ -12,9 +12,9 @@
     "semantic_hash": "b546d0904d92b1b570732c97c4fba9f2"
   },
   "CLAUDE.md": {
-    "mtime": 1792207896.2745383,
-    "seen": 1792208602.9195914,
-    "ast_hash": "7c2ebc909d922fd9b2c0ecc39e945ce1",
+    "mtime": 1792211626.0479722,
+    "seen": 1792213256.3831234,
+    "ast_hash": "4682de49ce6d2cf9c49cdc298791e6c0",
     "semantic_hash": ""
   },
   "artifacts/corporate-ai-circuit/index.html": {
@@ -102,9 +102,9 @@
     "semantic_hash": ""
   },
   "dashboard/server.py": {
-    "mtime": 1792207896.2765634,
-    "seen": 1792208602.9195187,
-    "ast_hash": "7a61411f296e4e1bb43522553868cbcc",
+    "mtime": 1792211548.6570692,
+    "seen": 1792213256.3830147,
+    "ast_hash": "cf2dc001d557976d70958b69e6bbab28",
     "semantic_hash": ""
   },
   "dashboard/sweeps.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "pyproject.toml": {
-    "mtime": 1791652133.717088,
-    "seen": 1792208602.9195354,
-    "ast_hash": "413b0615fa3ae69cbbb65f3f717b1a61",
+    "mtime": 1792211535.6658857,
+    "seen": 1792213256.3830395,
+    "ast_hash": "56196451b3f1b40f2f9ddb8c419b0728",
     "semantic_hash": ""
   },
   "run_step6_local.py": {
@@ -264,9 +264,27 @@
     "semantic_hash": ""
   },
   ".claude/plans/grpc-tls.md": {
-    "mtime": 1792205427.1462128,
-    "seen": 1792208602.919589,
-    "ast_hash": "aad066600c6736ead38f24b66c69e877",
+    "mtime": 1792211247.3219438,
+    "seen": 1792213256.3831196,
+    "ast_hash": "247bdef18ba9f9c635d5c7749ac6d2a7",
+    "semantic_hash": ""
+  },
+  "step8_heart_deploy_attacks.py": {
+    "mtime": 1792211523.9336364,
+    "seen": 1792213256.3830886,
+    "ast_hash": "e72f81286679434a4df64d7c7cf046f5",
+    "semantic_hash": ""
+  },
+  "test_step8_deploy_attacks.py": {
+    "mtime": 1792211581.766744,
+    "seen": 1792213256.3831093,
+    "ast_hash": "a5fcacbe679f62621bdb8d57f3ae7034",
+    "semantic_hash": ""
+  },
+  ".claude/plans/deploy-attacks.md": {
+    "mtime": 1792211332.8226871,
+    "seen": 1792213256.3831165,
+    "ast_hash": "203eda697fc299360045d86e3e3e63e8",
     "semantic_hash": ""
   }
 }

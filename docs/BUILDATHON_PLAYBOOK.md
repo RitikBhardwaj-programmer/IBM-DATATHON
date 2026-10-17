@@ -232,6 +232,16 @@ Say "one run" or "mean of 5 seeds" every time. The design review flagged the hea
 
 ## 5. LinuxONE day-0 summary (full version: `deploy/LINUXONE.md`)
 
+### 5.0 Done on 17 Oct (measured; session notes: `docs/linuxone_session/NOTES.md`)
+- Registration: event code **SSF2026**; image `Ubuntu24.04-Datathon`, flavor `AI_LAB` (3 vCPU, 7.8 GB RAM, 50 GB); quota 1 server.
+- Docker is not pre-installed: `sudo apt-get install -y docker.io docker-compose-v2`. `lscpu` shows the `nnpa` flag (Telum AI accelerator).
+- Native build: **17 min 47 s** (QEMU: 174 min). 3-round SecAgg run ~3 min; RAM in use 2.3 GB of 7.8 GB with all 6 containers.
+- The interpreter-exit segfault also happens on real hardware: `import flwr` prints, then exits 139; the dashboard shows `exit_code -11`
+  although the run finished (all rounds + `done` in the events file). Judge success by the events file.
+- Step 8 (written 17 Oct, PR #14): attacks + median defence now run in the deployment; flip+boost ran live on LinuxONE (honest acc 0.413).
+- Laptop tunnel: Windows reserves ports 7911-8010, so `-L 8000:...` fails with `bind ... Permission denied`. Use `-L 8800:127.0.0.1:8000`
+  and http://127.0.0.1:8800.
+
 ### 5.1 Pre-checks, right after you get the VM
 ```bash
 uname -m                                   # must print s390x
@@ -252,7 +262,7 @@ docker compose -f deploy/docker-compose.yml up -d
 docker compose -f deploy/docker-compose.yml ps -a           # certs Exited (0); superlink + 4 supernodes + dashboard Up
 ```
 TLS fallback if SuperNodes never join: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.insecure.yml up -d` (say "TLS off").
-Open the dashboard from the laptop: `ssh -L 8000:127.0.0.1:8000 <user>@<vm>`, then http://127.0.0.1:8000.
+Open the dashboard from the laptop: `ssh -L 8800:127.0.0.1:8000 <user>@<vm>`, then http://127.0.0.1:8800 (8000 is reserved on this Windows laptop).
 
 ### 5.3 Proof for the judges
 ```bash
@@ -272,7 +282,7 @@ docker compose -f deploy/docker-compose.yml logs | grep -E "Traceback|ClientApp 
 5. No training possible at all: the dashboard's golden replay.
 
 ### 5.5 Not verified yet
-Real LinuxONE speed; the protobuf C extension on real hardware; more than 1 round on s390x; the interpreter-exit segfault outside QEMU;
+The protobuf C extension on real hardware; a 20-round run on LinuxONE (3 rounds measured);
 an independent review of step 6 by the planning session (PR #6 merged before it); a long run of `test_step6_deploy.py` (~15 min) after the merge.
 
 ---

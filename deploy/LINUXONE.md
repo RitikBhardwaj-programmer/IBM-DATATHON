@@ -43,8 +43,9 @@ docker compose -f deploy/docker-compose.yml ps -a       # certs Exited (0); supe
 TLS is on: the one-shot `certs` service makes the demo CA and SuperLink certificate on the first `up` (volumes `tls-server`, `tls-ca`).
 If a SuperNode keeps retrying and never joins, check `docker compose logs certs superlink supernode-0`. Plaintext fallback (say "TLS off"):
 `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.insecure.yml up -d`.
-The dashboard listens on `127.0.0.1:8000` of the VM only (it has no login). From your laptop: `ssh -L 8000:127.0.0.1:8000 <user>@<vm>`, then open
-http://127.0.0.1:8000. Set `DASHBOARD_PORT=8001` if 8000 is taken.
+The dashboard listens on `127.0.0.1:8000` of the VM only (it has no login). From your laptop: `ssh -L 8800:127.0.0.1:8000 <user>@<vm>`, then open
+http://127.0.0.1:8800 (on Windows, Hyper-V/Docker may reserve 7911-8010: local 8000 then fails with `bind ... Permission denied`).
+Set `DASHBOARD_PORT=8001` if 8000 is taken on the VM.
 
 ### Prove it is s390x and big-endian (for the judges)
 ```bash
