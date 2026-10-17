@@ -55,7 +55,7 @@ assert flip["honest_acc"] < clean[1]["honest_acc"], "label flip did not lower ho
 print("b) OK")
 
 # ---- c) boost moves the aggregate further from the clean aggregate than label flip (SecAgg off: no clipping)
-run("step7_heart_attacks.py", debug_dir=tmp / "flip_0", SECAGG=0, ATTACK="labelflip")
+flip0 = run("step7_heart_attacks.py", debug_dir=tmp / "flip_0", SECAGG=0, ATTACK="labelflip")
 boost = run("step7_heart_attacks.py", debug_dir=tmp / "boost_0", SECAGG=0, ATTACK="boost")
 base = params(tmp / "clean_0")
 d_flip = float(np.linalg.norm(params(tmp / "flip_0") - base))
@@ -64,6 +64,16 @@ print(f"c) ||aggregate - clean||: label flip {d_flip:.3f}, boost x10 {d_boost:.3
 assert d_boost > d_flip, "boost should move the aggregate more than label flip"
 assert boost["clipped_rounds"] == 0, "nothing is clipped when SecAgg is off"
 print("c) OK")
+
+# ---- g) flip + boost (boosting a harmful direction) lowers honest accuracy more than label flip alone (same seed, SecAgg off)
+fb = run("step7_heart_attacks.py", debug_dir=tmp / "flipboost_0", SECAGG=0, ATTACK="flipboost")
+print(f"g) honest-hospital acc: clean {clean[0]['honest_acc']:.3f}, label flip {flip0['honest_acc']:.3f}, flip+boost x10 {fb['honest_acc']:.3f}")
+assert fb["honest_acc"] < flip0["honest_acc"], "flip+boost did not lower honest-hospital accuracy more than label flip"
+assert fb["clipped_rounds"] == 0, "nothing is clipped when SecAgg is off"
+fb1 = run("step7_heart_attacks.py", debug_dir=tmp / "flipboost_1", SECAGG=1, ATTACK="flipboost")
+print(f"g) with SecAgg+: honest acc {fb1['honest_acc']:.3f}, attacker update clipped in {fb1['clipped_rounds']} of {ROUNDS} rounds "
+      f"(max scaled value {fb1['max_scaled_attacker']:.2f}, clipping range 8)")
+print("g) OK")
 
 # ---- d) the MIA scorer: AUC in [0,1], and ~0.5 when 'members' and 'non-members' come from the same rows
 import step7_heart_attacks as s7  # safe: importing only loads data + defines apps (no simulation)

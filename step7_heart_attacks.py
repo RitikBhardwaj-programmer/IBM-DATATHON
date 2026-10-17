@@ -4,6 +4,8 @@ Attackers (one per direction of threat):
   * Integrity: one MALICIOUS HOSPITAL (ATTACKER) poisons its update every round.
       ATTACK=labelflip  trains on flipped labels (sick <-> healthy), same DP, same seed formula.
       ATTACK=boost      sends global + BOOST * (local - global): its update counts BOOST times more in the average.
+      ATTACK=flipboost  both: trains on flipped labels, then boosts that poisoned update (model-replacement style: it
+                        amplifies a harmful direction, while plain boost amplifies an honest one).
   * Privacy: an HONEST-BUT-CURIOUS SERVER runs a loss-threshold membership inference attack (MIA, Yeom et al. 2018)
     after training: "was this patient in hospital MIA_HOSPITAL's training set?" Members = that hospital's train rows,
     non-members = its test rows (balanced, seeded subsample). Score = -loss (members tend to have lower loss).
@@ -21,7 +23,7 @@ exactly (same seed -> same accuracy, F1, per-hospital accuracy, epsilon); the MI
 Run one experiment:
     ATTACK=labelflip SECAGG=1 NOISE=1.0 SEED=0 .venv\\Scripts\\python.exe step7_heart_attacks.py
     ATTACK=boost AGG=median SECAGG=0 NOISE=1.0 SEED=0 .venv\\Scripts\\python.exe step7_heart_attacks.py
-Env: ATTACK (none|labelflip|boost, default none), ATTACKER (hospital id, default 3 = va), BOOST (default 10.0),
+Env: ATTACK (none|labelflip|boost|flipboost, default none), ATTACKER (hospital id, default 3 = va), BOOST (default 10.0),
      AGG (fedavg|median|trimmed, default fedavg), TRIM_BETA (default 0.25), MIA (0/1, default 1),
      MIA_HOSPITAL (default 0 = cleveland: largest test set; must differ from ATTACKER, else the run is refused),
      plus every step 3 / step 4 env var and hook.
@@ -81,8 +83,8 @@ ATTACK_DIR_ENV = "STEP7_ATTACK_DIR"
 
 def config_error():
     """Return an error message for an invalid or contradictory configuration, or None."""
-    if ATTACK not in ("none", "labelflip", "boost"):
-        return f"ATTACK must be none, labelflip or boost (got {ATTACK!r})"
+    if ATTACK not in ("none", "labelflip", "boost", "flipboost"):
+        return f"ATTACK must be none, labelflip, boost or flipboost (got {ATTACK!r})"
     if AGG not in ("fedavg", "median", "trimmed"):
         return f"AGG must be fedavg, median or trimmed (got {AGG!r})"
     if not 0 <= ATTACKER < NUM_CLIENTS or not 0 <= MIA_HOSPITAL < NUM_CLIENTS:
@@ -137,14 +139,14 @@ def mia(params, X_in, y_in, X_out, y_out, seed):
 class AttackHospitalClient(s4.SecAggHospitalClient):
     def __init__(self, pid):
         super().__init__(pid)
-        if ATTACK == "labelflip" and pid == ATTACKER:
+        if ATTACK in ("labelflip", "flipboost") and pid == ATTACKER:
             self.d = {**self.d, "y_tr": (1 - self.d["y_tr"]).astype(np.float32)}  # train rows only; test labels stay true
 
     def fit(self, parameters, config):
         params, n, metrics = super().fit(parameters, config)
         r = int(config.get("server_round", 0))
         out = attack_dir()
-        if ATTACK == "boost" and self.pid == ATTACKER:
+        if ATTACK in ("boost", "flipboost") and self.pid == ATTACKER:
             params = [(g + BOOST * (p - g)).astype(np.float32) for p, g in zip(params, parameters)]
         if out and self.pid == ATTACKER and ATTACK != "none":
             max_scaled = max(float(np.abs(p).max()) for p in params) * n / MAX_WEIGHT  # what secaggplus_mod compares to the clip
@@ -231,7 +233,7 @@ def attack_summary(out):
     last = history[-1]
     honest = [a for i, a in enumerate(last["per_hospital_acc"]) if i != ATTACKER]
     rows = [json.loads(l) for l in (out / "attacker.jsonl").read_text(encoding="utf-8").splitlines()] if (out / "attacker.jsonl").exists() else []
-    res = {"attack": ATTACK, "attacker": ATTACKER, "attacker_name": HOSPITALS[ATTACKER], "boost": BOOST if ATTACK == "boost" else None,
+    res = {"attack": ATTACK, "attacker": ATTACKER, "attacker_name": HOSPITALS[ATTACKER], "boost": BOOST if ATTACK in ("boost", "flipboost") else None,
            "agg": AGG, "secagg": SECAGG, "noise": NOISE, "seed": SEED, "rounds": NUM_ROUNDS,
            "mia_hospital": MIA_HOSPITAL, "mia_hospital_name": HOSPITALS[MIA_HOSPITAL], "mia_n": None,
            "mia_auc_update": None, "mia_adv_update": None, "mia_auc_global": None, "mia_adv_global": None,

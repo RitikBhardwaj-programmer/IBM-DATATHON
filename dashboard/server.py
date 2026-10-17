@@ -60,6 +60,7 @@ class Attack(str, Enum):
     none = "none"
     labelflip = "labelflip"
     boost = "boost"
+    flipboost = "flipboost"
 
 
 class Agg(str, Enum):
