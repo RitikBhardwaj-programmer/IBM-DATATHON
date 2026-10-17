@@ -7,6 +7,8 @@ One deployment (1 SuperLink + 4 SuperNodes, each with only its own data file) se
   b) SECAGG=1 deployment: aggregate within the SecAgg+ quantization bound of the SECAGG=0 deployment; same epsilon.
   c) dashboard hooks in deployment: 1 baseline event, rounds 0..N, stage files for 4 hospitals, inspect files, masked vector ~ uniform.
   d) after the deployment stops: no SuperLink / SuperNode / SuperExec / ServerApp / ClientApp process and no open port is left.
+  e) TLS (the default, env TLS=1): Fleet and Control ports refuse a plaintext gRPC client and a client that trusts another CA,
+     and accept one that trusts our CA, for both 127.0.0.1 and the Docker name 'superlink'. a) then shows TLS changes no result.
 """
 import json
 import os
@@ -64,7 +66,60 @@ import step4_heart_secagg as s4  # noqa: E402  (loading data + defining apps onl
 ref = {"fedavg": sim(SECAGG=0, STRATEGY="fedavg"), "fedprox": sim(SECAGG=0, STRATEGY="fedprox", MU="0.1")}
 print("reference (step 4 simulation, SECAGG=0) done")
 
+def grpc_ready(port, ca=None, name=None, timeout=5.0):
+    """True if a gRPC channel to 127.0.0.1:port becomes ready: plaintext when ca is None, else TLS trusting only `ca`."""
+    import grpc
+    if ca is None:
+        ch = grpc.insecure_channel(f"127.0.0.1:{port}")
+    else:
+        opts = [("grpc.ssl_target_name_override", name)] if name else []
+        ch = grpc.secure_channel(f"127.0.0.1:{port}", grpc.ssl_channel_credentials(Path(ca).read_bytes()), options=opts)
+    try:
+        grpc.channel_ready_future(ch).result(timeout=timeout)
+        return True
+    except grpc.FutureTimeoutError:
+        return False
+    finally:
+        ch.close()
+
+
+def https_ok(port, ca=None, name="127.0.0.1", timeout=5.0):
+    """The Control API (--port) is HTTP in Flower 1.37, not gRPC. True if a request gets ANY HTTP answer:
+    plaintext HTTP when ca is None, else HTTPS trusting only `ca` and checking the certificate for `name`."""
+    import http.client
+    import socket
+    import ssl
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=timeout)
+    try:
+        if ca is not None:  # the TLS handshake (and its certificate check) happens here, so a refusal is caught below
+            ctx = ssl.create_default_context(cafile=str(ca))
+            conn.sock = ctx.wrap_socket(socket.create_connection(("127.0.0.1", port), timeout=timeout), server_hostname=name)
+        conn.request("GET", "/")
+        conn.getresponse()
+        return True
+    except (OSError, http.client.HTTPException):  # ssl.SSLError is an OSError
+        return False
+    finally:
+        conn.close()
+
+
+assert L.TLS, "run this test with TLS on (the default): it checks the encrypted deployment"
 with L.LocalDeployment(workdir=tmp / "deploy") as dep:
+    # ---- e) TLS: the Fleet and Control ports refuse plaintext, accept a client that trusts our CA (also under the Docker name)
+    ca = dep.certs / "ca.crt"
+    other = Path(tempfile.mkdtemp(prefix="step6_wrongca_"))
+    sys.path.insert(0, str(HERE / "deploy"))
+    from gen_certs import generate  # noqa: E402
+    generate(other)  # a different CA: the SuperLink's certificate must not be trusted by it
+    F, C = L.FLEET_PORT, L.CONTROL_PORT
+    assert not grpc_ready(F), f"Fleet {F} accepted a plaintext gRPC client: TLS is off"
+    assert grpc_ready(F, ca) and grpc_ready(F, ca, name="superlink"), f"Fleet {F}: our CA refused (certificate names?)"
+    assert not grpc_ready(F, other / "ca.crt"), f"Fleet {F}: a client trusting a different CA connected"
+    assert not https_ok(C), f"Control {C} answered plaintext HTTP: TLS is off"
+    assert https_ok(C, ca) and https_ok(C, ca, name="superlink"), f"Control {C}: our CA refused (certificate names?)"
+    assert not https_ok(C, other / "ca.crt"), f"Control {C}: a client trusting a different CA connected"
+    print(f"e) OK  Fleet {F} (gRPC) and Control {C} (HTTP): plaintext refused, our CA accepted for 127.0.0.1 and 'superlink', a foreign CA refused")
+
     # ---- a) SECAGG=0 deployment == simulation
     dep_off = {}
     for strat in ("fedavg", "fedprox"):

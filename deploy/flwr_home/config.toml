@@ -1,7 +1,8 @@
 # Flower CLI config used INSIDE the dashboard container (FLWR_HOME=/flwr_home): `flwr run /app deploy` talks to the SuperLink container.
+# TLS: the SuperLink certificate is checked against the demo CA from the tls-ca volume (see docker-compose.yml).
 [superlink]
 default = "deploy"
 
 [superlink.deploy]
 address = "superlink:9093"
-insecure = true
+root-certificates = "/tls/ca.crt"

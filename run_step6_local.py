@@ -6,6 +6,8 @@ because the demo's ServerApp computes the non-private baselines and the pooled t
 
 Use:   .venv\\Scripts\\python.exe run_step6_local.py noise=1.0 strategy=fedprox secagg=1 rounds=3 seed=0
 Keys are the run_config keys of pyproject.toml; unset keys keep the defaults there. Prints the ServerApp's `RESULT {json}` line.
+TLS (env TLS, default 1; 0/false/off/no = off): SuperNode -> SuperLink, CLI -> SuperLink and SuperLink -> ServerApp are encrypted, as in docker-compose.yml. A fresh CA + SuperLink certificate is made in the
+work dir (deploy/gen_certs.py); SuperNodes and the flwr CLI get only ca.crt. TLS=0 = the old plaintext setup (--insecure everywhere).
 Everything is killed at the end (also on Ctrl+C or a crash): SuperLink, SuperExec, ServerApp, SuperNodes, ClientApps.
 """
 import json
@@ -25,6 +27,7 @@ CONTROL_PORT = 9093  # SuperLink Runtime + Control HTTP API (flwr run talks to i
 FLEET_PORT = 9092  # SuperLink Fleet API (SuperNodes connect here)
 NODE_PORT0 = 9094  # SuperNode i serves its Runtime API on NODE_PORT0 + i
 BIN = Path(sys.executable).parent  # venv Scripts/bin: flower-superlink spawns `flower-superexec` by name, so it must be on PATH
+TLS = os.environ.get("TLS", "1").strip().lower() not in ("0", "false", "off", "no")
 
 
 def exe(name):
@@ -70,9 +73,11 @@ def port_open(port):
 class LocalDeployment:
     """Context manager: starts the SuperLink and 4 SuperNodes; `run(cfg)` submits one run and waits for it."""
 
-    def __init__(self, workdir=None, data_dir=None):
+    def __init__(self, workdir=None, data_dir=None, tls=None):
         self.work = Path(workdir) if workdir else Path(tempfile.mkdtemp(prefix="step6-"))
         self.data_dir = Path(data_dir) if data_dir else ROOT / "data" / "heart_disease"
+        self.tls = TLS if tls is None else tls
+        self.certs = self.work / "certs"
         self.procs = []
         self.logs = self.work / "logs"
 
@@ -98,17 +103,27 @@ class LocalDeployment:
             busy = [p for p in [CONTROL_PORT, FLEET_PORT] + [NODE_PORT0 + i for i in range(4)] if port_open(p)]
             if busy:
                 raise RuntimeError(f"ports already in use: {busy} (is another deployment running?)")
+            if self.tls:
+                sys.path.insert(0, str(ROOT / "deploy"))
+                from gen_certs import generate  # lazy: TLS=0 must not need it
+                generate(self.certs)
+                ca = (self.certs / "ca.crt").as_posix()  # TOML string: forward slashes need no escaping
+                server_tls = ["--ssl-ca-certfile", str(self.certs / "ca.crt"), "--ssl-certfile", str(self.certs / "server.pem"),
+                              "--ssl-keyfile", str(self.certs / "server.key")]
+                node_tls, cli_tls = ["--root-certificates", str(self.certs / "ca.crt")], f'root-certificates = "{ca}"\n'
+            else:
+                server_tls, node_tls, cli_tls = ["--insecure"], ["--insecure"], "insecure = true\n"
             (self.work / "flwr_home").mkdir(exist_ok=True)  # own Flower config: the user's ~/.flwr is never touched
             (self.work / "flwr_home" / "config.toml").write_text(
-                f'[superlink]\ndefault = "step6"\n\n[superlink.step6]\naddress = "127.0.0.1:{CONTROL_PORT}"\ninsecure = true\n', encoding="utf-8")
-            self._spawn("superlink", [exe("flower-superlink"), "--insecure", "--disable-runtime-dependency-installation",
+                f'[superlink]\ndefault = "step6"\n\n[superlink.step6]\naddress = "127.0.0.1:{CONTROL_PORT}"\n{cli_tls}', encoding="utf-8")
+            self._spawn("superlink", [exe("flower-superlink"), *server_tls, "--disable-runtime-dependency-installation",
                                       "--host", "127.0.0.1", "--port", str(CONTROL_PORT), "--fleet-api-address", f"127.0.0.1:{FLEET_PORT}"],
                         self._env(DATA_DIR=str(self.data_dir)))
             for i, name in enumerate(HOSPITALS):
                 d = self.work / f"data_{name}"  # this SuperNode's whole world: one file
                 d.mkdir(exist_ok=True)
                 shutil.copy2(self.data_dir / f"processed.{name}.data", d / f"processed.{name}.data")
-                self._spawn(f"supernode-{i}", [exe("flower-supernode"), "--insecure", "--superlink", f"127.0.0.1:{FLEET_PORT}",
+                self._spawn(f"supernode-{i}", [exe("flower-supernode"), *node_tls, "--superlink", f"127.0.0.1:{FLEET_PORT}",
                                                "--node-config", f"partition-id={i} num-partitions={len(HOSPITALS)}",
                                                "--port", str(NODE_PORT0 + i)],
                             self._env(DATA_DIR=str(d), ALLOW_MISSING_DATA="1"))

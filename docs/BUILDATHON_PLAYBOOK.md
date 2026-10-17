@@ -62,7 +62,7 @@ Each one closes a stated limit (section 6.4). Effort figures are **estimates**.
 
 | Option | Closes this limit | Effort (estimate) | Risk |
 |---|---|---|---|
-| TLS on gRPC (Flower has certificate options on SuperLink and SuperNodes; unverified for 1.37) | "gRPC is insecure" | 2-3 h | Certificate paths in 5 containers |
+| **DONE 17 Oct:** TLS on gRPC (`deploy/gen_certs.py`, `certs` compose service; CLAUDE.md "Step 6 TLS") | "gRPC is insecure" | 2-3 h | Certificate paths in 5 containers |
 | Federated evaluation (each hospital scores its own test rows) so the SuperLink holds no hospital files | "SuperLink holds all four files" | 3-4 h | Pooled F1 is not a weighted mean of per-hospital F1: the headline metric changes |
 | Dashboard login (basic auth) and a public demo URL | "No login, loopback only" | 1-2 h | Exposing the VM: keep it short-lived |
 | One slide + design note: IBM Secure Execution for the SuperLink | Z-specific hardening | 1 h (no code) | Only claim what you ran |
@@ -169,8 +169,10 @@ Say "one run" or "mean of 5 seeds" every time. The design review flagged the hea
 ### 4.4 Flower deployment mode (*vault* `flwr-deployment-gotchas`)
 | Symptom | Cause | Fix |
 |---|---|---|
-| `flwr run` cannot find the federation | Flower 1.37 reads `$FLWR_HOME/config.toml`, not pyproject federations | `[superlink.<name>] address = "host:port"`, `insecure = true`; set `FLWR_HOME` to a scratch folder |
+| `flwr run` cannot find the federation | Flower 1.37 reads `$FLWR_HOME/config.toml`, not pyproject federations | `[superlink.<name>] address = "host:port"` plus `root-certificates = "<ca.crt>"` (TLS) or `insecure = true`; set `FLWR_HOME` to a scratch folder |
 | Port clash with the dashboard | SuperLink Control/Runtime API defaults to `--port 8000` | Use 9093; Fleet API is 9092; each SuperNode on one host needs its own `--port` |
+| With TLS, a SuperNode or the CLI retries forever | The SuperLink certificate lacks the name the client dials (Flower's own `flower-superexec` dials 127.0.0.1) | `deploy/gen_certs.py` SANs: `superlink`, `localhost`, `127.0.0.1`, `::1`; CLI uses `root-certificates = ...` instead of `insecure = true` |
+| A gRPC probe of port 9093 fails even with TLS working | The Control API on `--port` is HTTP in Flower 1.37; only the Fleet API (9092) is gRPC | Probe 9093 with HTTPS, 9092 with gRPC (`test_step6_deploy.py` e) |
 | `flower-superexec` not found (Windows) | SuperLink spawns it by name | Venv Scripts on PATH; full path for every console script |
 | The repo's modules load instead of the FAB | cwd is the repo | Run `flower-*` from outside the repo; `fab-include` keeps the FAB to 3 modules |
 | SuperLink runs `uv sync` | Runtime dependency install is on | `--disable-runtime-dependency-installation` |
@@ -246,8 +248,9 @@ Clone, fetch the 4 data files and `chmod a+r` them (commands in `deploy/LINUXONE
 ```bash
 time docker compose -f deploy/docker-compose.yml build      # once; never --no-cache
 docker compose -f deploy/docker-compose.yml up -d
-docker compose -f deploy/docker-compose.yml ps              # superlink + 4 supernodes + dashboard Up
+docker compose -f deploy/docker-compose.yml ps -a           # certs Exited (0); superlink + 4 supernodes + dashboard Up
 ```
+TLS fallback if SuperNodes never join: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.insecure.yml up -d` (say "TLS off").
 Open the dashboard from the laptop: `ssh -L 8000:127.0.0.1:8000 <user>@<vm>`, then http://127.0.0.1:8000.
 
 ### 5.3 Proof for the judges
@@ -255,6 +258,7 @@ Open the dashboard from the laptop: `ssh -L 8000:127.0.0.1:8000 <user>@<vm>`, th
 docker compose -f deploy/docker-compose.yml exec superlink uname -m          # s390x
 docker compose -f deploy/docker-compose.yml exec superlink python -c "import sys,platform;print(platform.machine(), sys.byteorder)"   # s390x big
 docker compose -f deploy/docker-compose.yml exec supernode-1 ls /data        # only processed.hungarian.data
+docker compose -f deploy/docker-compose.yml exec supernode-1 ls /tls         # only ca.crt: the hospital holds no key
 docker compose -f deploy/docker-compose.yml logs | grep -E "Traceback|ClientApp raised"   # must print nothing
 ```
 `head -c 100 /runs/<id>/insp/masked.npy` shows `'descr': '>u4'`: the masked vector was written big-endian.
@@ -296,13 +300,14 @@ an independent review of step 6 by the planning session (PR #6 merged before it)
 5. **(45 s) What the server sees.** The hero strip and panel 2: 273 readable values become noise across 0…2³²; only the sum is recoverable.
 6. **(30 s) Result.** The trade-off chart and the headline number, labelled "mean of 5 seeds".
 6b. **(optional, 45 s) Attacks panel.** One label-flipping hospital costs the others ~9 points; the median wins back half, but only if SecAgg+ is off: a server that cannot see single updates can neither leak them nor catch the liar. Say that the membership attack fails (coin flip) even without DP on this small model.
-7. **(15 s) Limits + next step.** Three limits (6.4) and the Secure Execution / TLS hardening slide.
+7. **(15 s) Limits + next step.** Three limits (6.4) and the Secure Execution hardening slide (TLS is already on: say it in step 3).
 
 ### 6.4 Honest limits (say them)
 - Threat model: honest-but-curious server. With 4 hospitals, 3 colluding with the server reveal the 4th's update.
 - SecAgg+ hides single updates, not what the released model leaks; that is why DP is also needed. ε is large (12 at noise 2) because the hospitals are small.
 - The SuperLink container holds all four files for the non-private baselines and the pooled test score (evaluation only).
-- The `/runs` volume is the demo's inspector channel; gRPC has no TLS; the dashboard has no login.
+- The `/runs` volume is the demo's inspector channel; the dashboard has no login.
+- TLS encrypts every link between containers (not the loopback SuperNode -> ClientApp hop inside each hospital container) but uses a self-made demo CA and authenticates only the SuperLink: the CA is public, so TLS alone does not stop an unknown SuperNode from joining (Flower's `--enable-supernode-auth` would; not used).
 - Values beyond ±8 after scaling are clipped; the run asserts they stay below 8.
 - ε colour bands (<1 strong, 1-10 moderate, >10 weak) are a rule of thumb, not a standard.
 - Step 7: SecAgg+ and robust aggregation exclude each other, so with SecAgg+ on we have no defence against a poisoning hospital (and cannot tell which one cheated). The membership attack fails even without DP, so the demo does not show DP stopping it; at ε ≈ 12 the DP guarantee itself is weak. The boost attack used here amplifies an honest update; a real attacker would boost a harmful one.

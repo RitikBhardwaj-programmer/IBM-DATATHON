@@ -1,0 +1,7 @@
+# Plaintext fallback: docker-compose.insecure.yml copies this file over /flwr_home/config.toml. Normal runs use ../flwr_home (TLS).
+[superlink]
+default = "deploy"
+
+[superlink.deploy]
+address = "superlink:9093"
+insecure = true
