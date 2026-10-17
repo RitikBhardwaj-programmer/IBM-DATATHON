@@ -112,8 +112,9 @@
             <label><input type="radio" name="attack" value="none" checked><span>None</span></label>
             <label><input type="radio" name="attack" value="labelflip"><span>Label flip</span></label>
             <label><input type="radio" name="attack" value="boost"><span>Boost ×10</span></label>
+            <label><input type="radio" name="attack" value="flipboost"><span>Flip + boost</span></label>
             <small>One hospital cheats every round (<em>poisoning</em>). Label flip = it trains on swapped labels (sick ↔ healthy).
-              Boost = it multiplies its update by 10 to drag the average. The server also tries to tell members from non-members (<em>membership inference</em>) in every run.</small>
+              Boost = it multiplies its update by 10 to drag the average. Flip + boost = both: it multiplies a poisoned update by 10. The server also tries to tell members from non-members (<em>membership inference</em>) in every run.</small>
           </fieldset>
           <label class="fld" id="attackerFld">
             <span class="fld-l">Malicious hospital</span>

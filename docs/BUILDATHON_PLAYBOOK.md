@@ -134,6 +134,7 @@ Do not start a third option. A finished demo with one improvement beats two half
 | Step 7: one label-flipping hospital | honest hospitals 76.3% -> 66.9% (FedAvg, noise 1, SecAgg on or off, 5 seeds) | measured | `results/step7_runs.jsonl` |
 | Step 7: median vs label flip | 71.8% (wins back about half), only possible with SecAgg off; clean median 77.8% vs FedAvg 76.3% | measured | `results/step7_runs.jsonl` |
 | Step 7: boost x10 of an honest update | 77.1%: no harm (it only gives va more weight) | measured | `results/step7_runs.jsonl` |
+| Step 7: flip + boost x10 (boosts a harmful update) | honest hospitals 76.3% -> 42.8% (FedAvg, noise 1, SecAgg on or off, 5 seeds); median 71.4%; SecAgg+ clipped it in 0 of 300 rounds (max scaled value 2.58 < 8) | measured | `results/step7_runs.jsonl` |
 | Step 7: membership inference | AUC 49-50% (coin flip) in every config, even no DP; 53.2% ± 2.6 when overfit (50 local epochs, no DP) | measured | `results/step7_runs.jsonl` |
 
 Say "one run" or "mean of 5 seeds" every time. The design review flagged the headline (5-seed mean) next to a single run as a contradiction.
@@ -310,7 +311,7 @@ an independent review of step 6 by the planning session (PR #6 merged before it)
 - TLS encrypts every link between containers (not the loopback SuperNode -> ClientApp hop inside each hospital container) but uses a self-made demo CA and authenticates only the SuperLink: the CA is public, so TLS alone does not stop an unknown SuperNode from joining (Flower's `--enable-supernode-auth` would; not used).
 - Values beyond ±8 after scaling are clipped; the run asserts they stay below 8.
 - ε colour bands (<1 strong, 1-10 moderate, >10 weak) are a rule of thumb, not a standard.
-- Step 7: SecAgg+ and robust aggregation exclude each other, so with SecAgg+ on we have no defence against a poisoning hospital (and cannot tell which one cheated). The membership attack fails even without DP, so the demo does not show DP stopping it; at ε ≈ 12 the DP guarantee itself is weak. The boost attack used here amplifies an honest update; a real attacker would boost a harmful one.
+- Step 7: SecAgg+ and robust aggregation exclude each other, so with SecAgg+ on we have no defence against a poisoning hospital (and cannot tell which one cheated). The membership attack fails even without DP, so the demo does not show DP stopping it; at ε ≈ 12 the DP guarantee itself is weak. Plain boost amplifies an honest update and does no harm; flip + boost amplifies a harmful one and cuts honest accuracy to 42.8%, and SecAgg+'s clipping range (±8) does not catch it.
 - IBM Z security features (Secure Execution, pervasive encryption, Crypto Express) are **production hardening we did not implement**, unless you implement one during the event.
 
 ### 6.5 Why IBM Z / LinuxONE (honest framing)

@@ -210,7 +210,7 @@ function reflectParams(p) {
 }
 
 // ============================================================ attack controls
-const ATTACK_NAME = { none: 'no', labelflip: 'label-flip', boost: 'boost ×10' };
+const ATTACK_NAME = { none: 'no', labelflip: 'label-flip', boost: 'boost ×10', flipboost: 'flip + boost ×10' };
 let secaggBeforeMedian = null;   // SecAgg+ is restored when the user leaves Median
 function syncAttackCtl() {
   const median = document.querySelector('input[name=strategy]:checked').value === 'median';
@@ -907,7 +907,8 @@ function renderAttackLive() {
 // Sweep: honest-hospital accuracy per defence (group) and attack (bar), at one DP noise level.
 const DEFENCES = [{ agg: 'fedavg', secagg: 1, label: ['FedAvg', '+ SecAgg+'] }, { agg: 'fedavg', secagg: 0, label: ['FedAvg', 'no SecAgg+'] },
   { agg: 'median', secagg: 0, label: ['Median', 'no SecAgg+'] }];
-const ATTACKS = [{ key: 'none', label: 'No attacker' }, { key: 'labelflip', label: 'Label flip' }, { key: 'boost', label: 'Boost ×10' }];
+const ATTACKS = [{ key: 'none', label: 'No attacker' }, { key: 'labelflip', label: 'Label flip' }, { key: 'boost', label: 'Boost ×10' },
+  { key: 'flipboost', label: 'Flip + boost ×10' }];
 let atkChart = null;
 const atkCell = (attack, d, noise) => (sweeps && sweeps.attacks || []).find((g) => g.attack === attack && g.agg === d.agg && g.secagg === d.secagg
   && g.noise === noise && g.local_epochs === 5);
@@ -933,7 +934,7 @@ function buildAtkChart() {
     }),
     plugins: [whiskerPlugin],
   }), (ch, c) => ch.data.datasets.forEach((d) => {
-    const col = d.atk === 'none' ? c.accent : d.atk === 'labelflip' ? c.warn : c.bad;
+    const col = { none: c.accent, labelflip: c.warn, boost: c.sky, flipboost: c.bad }[d.atk];
     d.borderColor = col; d.backgroundColor = d.atk === 'none' ? col : col + '99';
   }));
 }
@@ -944,13 +945,15 @@ function renderAttacks() {
   buildAtkChart();
   const f = (attack, d) => atkCell(attack, d, 1);
   const clean = f('none', DEFENCES[0]), flip = f('labelflip', DEFENCES[0]), boost = f('boost', DEFENCES[0]), medFlip = f('labelflip', DEFENCES[2]), medBoost = f('boost', DEFENCES[2]);
+  const fb = f('flipboost', DEFENCES[0]), medFb = f('flipboost', DEFENCES[2]);
   const wins = gs.filter((g) => g.attack === 'none' && g.local_epochs > 5).sort((a, b) => b.local_epochs - a.local_epochs)[0];
   const base = gs.find((g) => g.attack === 'none' && g.agg === 'fedavg' && g.secagg === 0 && g.noise === 0 && g.local_epochs === 5);
-  if (clean && flip && boost && medFlip && medBoost) {
+  if (clean && flip && boost && medFlip && medBoost && fb && medFb) {
     $('atkHeadline').innerHTML = `<b>One label-flipping hospital out of four: honest accuracy ${pct(clean.mean_honest_acc)} → ${pct(flip.mean_honest_acc)} with FedAvg + SecAgg+.
       The median wins back part of it (${pct(medFlip.mean_honest_acc)}), but only with SecAgg+ off.</b>` +
       `<small>DP noise 1, mean of ${clean.n_seeds} seeds, from <code>results/step7_runs.jsonl</code>. Boost ×10 does not hurt (${pct(boost.mean_honest_acc)}; median ${pct(medBoost.mean_honest_acc)}):
-      the attacker amplifies an honest update, which only gives it more weight. A boost harms when it amplifies a harmful direction.` +
+      the attacker amplifies an honest update, which only gives it more weight. Boosting the flipped update is what hurts: ${pct(fb.mean_honest_acc)}
+      (median ${pct(medFb.mean_honest_acc)}), and SecAgg+ did not clip it.` +
       (base && wins ? ` Membership inference on one hospital's own update, no DP: AUC ${pct(base.mean_mia_auc_update)} (coin flip) with 5 local epochs, ${pct(wins.mean_mia_auc_update)} when it overfits (${wins.local_epochs} epochs).
       This 273-weight model remembers too little for the attack to work, so the sweep cannot show what DP adds against it.` : '') + '</small>';
   } else {
