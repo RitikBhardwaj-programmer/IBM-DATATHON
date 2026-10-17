@@ -7,11 +7,12 @@ license = "Apache-2.0"
 [tool.flwr.app]
 publisher = "zero-exposure"
 # Only the three modules go into the FAB that `flwr run` ships (no tests, dashboard runs, data or artifacts).
-fab-include = ["step3_heart_dp.py", "step4_heart_secagg.py", "step6_heart_deploy.py"]
+fab-include = ["step3_heart_dp.py", "step4_heart_secagg.py", "step6_heart_deploy.py", "step7_heart_attacks.py", "step8_heart_deploy_attacks.py"]
 
+# Step 8 = step 6 + step 7's attackers; with attack="none" and agg="fedavg" it computes exactly what step 6 does.
 [tool.flwr.app.components]
-serverapp = "step6_heart_deploy:app"
-clientapp = "step6_heart_deploy:client_app"
+serverapp = "step8_heart_deploy_attacks:app"
+clientapp = "step8_heart_deploy_attacks:client_app"
 
 # Defaults = step 4's defaults. Override per run: flwr run . local --run-config "noise=2.0 secagg=0 rounds=3"
 # Floats must contain a decimal point (the override must keep the default's type). Empty string = not set.
@@ -29,3 +30,12 @@ events-file = ""
 inspect-dir = ""
 inspect-round = 1
 debug-dir = ""
+# Step 8 (step 7's env vars, same defaults). attack-dir = folder shared by all apps for step 7's side channel; empty = no MIA.
+attack = "none"
+attacker = 3
+boost = 10.0
+agg = "fedavg"
+trim-beta = 0.25
+mia = 1
+mia-hospital = 0
+attack-dir = ""

@@ -3,6 +3,8 @@
 !step3_heart_dp.py
 !step4_heart_secagg.py
 !step6_heart_deploy.py
+!step7_heart_attacks.py
+!step8_heart_deploy_attacks.py
 !run_step6_local.py
 !pyproject.toml
 !dashboard/

@@ -7,8 +7,8 @@ server tails those files. One run at a time. Stop, crash and server shutdown kil
 
 MODE=sim (default): the child is step7_heart_attacks.py (Flower simulation on Ray, one process). Step 7 is step 4 plus optional
 attackers (ATTACK, ATTACKER, AGG); with no attack it trains exactly like step 4 and ends with one extra "attack" event (membership test).
-MODE=deploy (step 6, used by deploy/docker-compose.yml): the child is `flwr run --stream` against an already running SuperLink with
-4 SuperNodes (step6_heart_deploy.py; it has no attackers, so attack/agg other than none/fedavg are refused). The same files are written, to RUNS_DIR (a volume shared with the other containers).
+MODE=deploy (used by deploy/docker-compose.yml): the child is `flwr run --stream` against an already running SuperLink with
+4 SuperNodes (step8_heart_deploy_attacks.py = step 6 + step 7's attackers). The same files are written, to RUNS_DIR (a volume shared with the other containers).
 Stop = `flwr stop <run id>` + kill the CLI. A deploy run counts as done only if the ServerApp wrote its final `done` event.
 """
 import asyncio
@@ -82,8 +82,6 @@ class RunRequest(BaseModel):
 
 def request_conflict(req):
     """Why this combination cannot run, or None. Mirrors step7_heart_attacks.config_error for the fields the UI can set."""
-    if MODE == "deploy" and (req.attack != Attack.none or req.agg != Agg.fedavg):
-        return "attacks and median aggregation run in simulation mode only (the step 6 deployment has no attackers)"
     if req.agg == Agg.median and req.secagg:
         return "median aggregation needs each hospital's update in the clear, and SecAgg+ hides exactly that: turn SecAgg+ off"
     if req.agg == Agg.median and req.strategy != Strategy.fedavg:
@@ -121,6 +119,8 @@ def deploy_run_config(run, params):
         "rounds": int(params["rounds"]), "noise": float(params["noise"]), "strategy": params["strategy"], "mu": 0.1,
         "seed": int(params["seed"]), "secagg": 1 if params["secagg"] else 0,
         "events-file": str(run.dir / "events.jsonl"), "inspect-dir": str(run.dir / "insp"), "inspect-round": INSPECT_ROUND,
+        "attack": params["attack"], "attacker": int(params["attacker"]), "agg": params["agg"],
+        "attack-dir": str(run.dir / "attack"),  # step 7's client->server side channel, as in sim mode (shared /runs volume)
     })
 
 
