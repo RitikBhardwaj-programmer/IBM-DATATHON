@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Part 1: ATTACK {none, labelflip, boost} x defence {fedavg+SecAgg, fedavg no SecAgg, median no SecAgg} x NOISE {0,1,2} x SEED 0..4
-#         = 135 runs. Trimmed mean is left out: with 4 hospitals and beta 0.25 it equals the median (test_step7_attacks.py f).
+# Part 1: ATTACK {none, labelflip, boost, flipboost} x defence {fedavg+SecAgg, fedavg no SecAgg, median no SecAgg} x NOISE {0,1,2}
+#         x SEED 0..4 = 180 runs. Trimmed mean is left out: with 4 hospitals and beta 0.25 it equals the median (test_step7_attacks.py f).
 #         Median + SecAgg is impossible by design (step 7 refuses it).
 # Part 2: "attacker wins" membership inference: no noise, no SecAgg, no poisoning, LOCAL_EPOCHS {20, 50} x SEED 0..4 = 10 runs.
 #         Shows whether the loss-threshold MIA can succeed at all on this 273-parameter model when it is allowed to overfit.
@@ -31,7 +31,7 @@ one() {  # one SEED NOISE ATTACK AGG SECAGG EPOCHS
 
 for seed in 0 1 2 3 4; do
   for noise in 0 1 2; do
-    for attack in none labelflip boost; do
+    for attack in none labelflip boost flipboost; do
       for cfg in "fedavg 1" "fedavg 0" "median 0"; do
         set -- $cfg
         one $seed $noise $attack $1 $2 5
